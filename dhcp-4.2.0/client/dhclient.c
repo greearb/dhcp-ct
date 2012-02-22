@@ -2578,16 +2578,16 @@ void send_release (cpp)
 	      inet_ntoa (destination.sin_addr),
 	      ntohs (destination.sin_port));
 
-	if (fallback_interface)
-		result = send_packet (fallback_interface,
-				      (struct packet *)0,
+	/* Send out a packet. */
+	if (client -> interface)
+		result = send_packet (client -> interface, (struct packet *)0,
 				      &client -> packet,
 				      client -> packet_length,
 				      from, &destination,
 				      (struct hardware *)0);
 	else
-		/* Send out a packet. */
-		result = send_packet (client -> interface, (struct packet *)0,
+		result = send_packet (fallback_interface,
+				      (struct packet *)0,
 				      &client -> packet,
 				      client -> packet_length,
 				      from, &destination,
