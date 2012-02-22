@@ -58,6 +58,7 @@ void bootp (packet)
 	char msgbuf [1024];
 	int ignorep;
 	int peer_has_leases = 0;
+	int norelay = 0;
 
 	if (packet -> raw -> op != BOOTREQUEST)
 		return;
@@ -73,7 +74,7 @@ void bootp (packet)
 		 ? inet_ntoa (packet -> raw -> giaddr)
 		 : packet -> interface -> name);
 
-	if (!locate_network (packet)) {
+	if ((norelay = locate_network (packet)) == 0) {
 		log_info ("%s: network unknown", msgbuf);
 		return;
 	}
@@ -388,6 +389,13 @@ void bootp (packet)
 					      (struct packet *)0,
 					      &raw, outgoing.packet_length,
 					      from, &to, &hto);
+			goto out;
+		}
+	} else if (norelay == 2) {
+		to.sin_addr = raw.ciaddr;
+		to.sin_port = remote_port;
+		if (fallback_interface) {
+			result = send_packet (fallback_interface, (struct packet *)0, &raw, outgoing.packet_length, from, &to, &hto);
 			goto out;
 		}
 
