@@ -189,6 +189,10 @@ void add_timeout (when, where, what, ref, unref)
 	isc_interval_t interval;
 	isc_time_t expires;
 
+	if (when == NULL) {
+		return;
+	}
+
 	/* See if this timeout supersedes an existing timeout. */
 	t = (struct timeout *)0;
 	for (q = timeouts; q; q = q->next) {
