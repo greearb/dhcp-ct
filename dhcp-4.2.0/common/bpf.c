@@ -485,7 +485,7 @@ ssize_t receive_packet (interface, buf, len, from, hfrom)
 		offset = decode_udp_ip_header (interface,
 					       interface -> rbuf,
 					       interface -> rbuf_offset,
-  					       from, hdr.bh_caplen, &paylen);
+  					       from, hdr.bh_caplen, &paylen, 0);
 
 		/* If the IP or UDP checksum was bad, skip the packet... */
 		if (offset < 0) {

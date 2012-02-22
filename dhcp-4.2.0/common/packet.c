@@ -211,7 +211,7 @@ ssize_t
 decode_udp_ip_header(struct interface_info *interface,
 		     unsigned char *buf, unsigned bufix,
 		     struct sockaddr_in *from, unsigned buflen,
-		     unsigned *rbuflen)
+		     unsigned *rbuflen, int nocsum)
 {
   unsigned char *data;
   struct ip ip;
@@ -322,7 +322,7 @@ decode_udp_ip_header(struct interface_info *interface,
 					   8, IPPROTO_UDP + ulen))));
 
   udp_packets_seen++;
-  if (usum && usum != sum) {
+  if (!nocsum && usum && usum != sum) {
 	  udp_packets_bad_checksum++;
 	  if (udp_packets_seen > 4 &&
 	      (udp_packets_seen / udp_packets_bad_checksum) < 2) {

@@ -694,7 +694,7 @@ ssize_t receive_packet (interface, buf, len, from, hfrom)
 	length -= offset;
 #endif
 	offset = decode_udp_ip_header (interface, dbuf, bufix,
-				       from, length, &paylen);
+				       from, length, &paylen, 0);
 
 	/*
 	 * If the IP or UDP checksum was bad, skip the packet...
