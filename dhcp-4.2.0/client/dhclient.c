@@ -949,11 +949,16 @@ main(int argc, char **argv) {
 					do_release(client);
 				else {
 					client->state = S_INIT;
-					/* Set up a timeout to start the
-					 * initialization process.
+					/* Set up a timeout (0-1 second) to
+					 * start the initialization process.
 					 */
-					tv.tv_sec = cur_time + random() % 5;
-					tv.tv_usec = 0;
+					tv.tv_sec = cur_tv.tv_sec;
+					tv.tv_usec = cur_tv.tv_usec;
+					tv.tv_usec += (random() % 100) * 10000;
+					if (tv.tv_usec >= 1000000) {
+						tv.tv_sec += 1;
+						tv.tv_usec -= 1000000;
+					} 
 					add_timeout(&tv, state_reboot,
 						    client, 0, 0);
 				}
@@ -3934,10 +3939,16 @@ isc_result_t dhclient_interface_startup_hook (struct interface_info *interface)
 		ip -> flags |= INTERFACE_RUNNING;
 		for (client = ip -> client; client; client = client -> next) {
 			client -> state = S_INIT;
-			/* Set up a timeout to start the initialization
-			   process. */
-			tv . tv_sec = cur_time + random () % 5;
-			tv . tv_usec = 0;
+			/* Set up a timeout (0-1 second) to
+			 * start the initialization process.
+			 */
+			tv.tv_sec = cur_tv.tv_sec;
+			tv.tv_usec = cur_tv.tv_usec;
+			tv.tv_usec += (random() % 100) * 10000;
+			if (tv.tv_usec >= 1000000) {
+				tv.tv_sec += 1;
+				tv.tv_usec -= 1000000;
+			}
 			add_timeout (&tv, state_reboot, client, 0, 0);
 		}
 	}
