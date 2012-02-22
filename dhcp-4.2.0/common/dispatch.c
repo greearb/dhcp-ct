@@ -185,7 +185,7 @@ void add_timeout (when, where, what, ref, unref)
 	struct timeout *t, *q;
 	int usereset = 0;
 	isc_result_t status;
-	int sec, usec;
+	struct timeval relative_time;
 	isc_interval_t interval;
 	isc_time_t expires;
 
@@ -297,24 +297,24 @@ void add_timeout (when, where, what, ref, unref)
 	 * about the usec value, if it's zero we assume the caller didn't care.
 	 */
 
-	sec  = when->tv_sec - cur_tv.tv_sec;
-	usec = when->tv_usec - cur_tv.tv_usec;
+	relative_time.tv_sec  = when->tv_sec - cur_tv.tv_sec;
+	relative_time.tv_usec = when->tv_usec - cur_tv.tv_usec;
 	
-	if ((when->tv_usec != 0) && (usec < 0)) {
-		sec--;
-		usec += USEC_MAX;
+	if ((when->tv_usec != 0) && (relative_time.tv_usec < 0)) {
+		relative_time.tv_sec--;
+		relative_time.tv_usec += USEC_MAX;
 	}
 
-	if (sec < 0) {
-		sec  = 0;
-		usec = 0;
-	} else if (usec < 0) {
-		usec = 0;
-	} else if (usec >= USEC_MAX) {
-		usec = USEC_MAX - 1;
+	if (relative_time.tv_sec < 0) {
+		relative_time.tv_sec  = 0;
+		relative_time.tv_usec = 0;
+	} else if (relative_time.tv_usec < 0) {
+		relative_time.tv_usec = 0;
+	} else if (relative_time.tv_usec >= USEC_MAX) {
+		relative_time.tv_usec = USEC_MAX - 1;
 	}
 
-	isc_interval_set(&interval, sec, usec * 1000);
+	isc_interval_set(&interval, relative_time.tv_sec, relative_time.tv_usec * 1000);
 	status = isc_time_nowplusinterval(&expires, &interval);
 	if (status != ISC_R_SUCCESS) {
 		/*

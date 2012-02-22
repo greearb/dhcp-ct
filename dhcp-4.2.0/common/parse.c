@@ -905,8 +905,8 @@ TIME
 parse_date_core(cfile)
 	struct parse *cfile;
 {
-	int guess;
-	int tzoff, wday, year, mon, mday, hour, min, sec;
+	TIME guess;
+	long int tzoff, wday, year, mon, mday, hour, min, sec;
 	const char *val;
 	enum dhcp_token token;
 	static int months [11] = { 31, 59, 90, 120, 151, 181,
@@ -931,7 +931,7 @@ parse_date_core(cfile)
 			return (TIME)0;
 		}
 
-		guess = atoi(val);
+		guess = atol(val);
 
 		if (!parse_semi(cfile))
 			return (TIME)0;
@@ -945,7 +945,7 @@ parse_date_core(cfile)
 			skip_to_semi (cfile);
 		return (TIME)0;
 	}
-	wday = atoi (val);
+	wday = atol (val);
 
 	/* Year... */
 	token = next_token (&val, (unsigned *)0, cfile);
@@ -960,7 +960,7 @@ parse_date_core(cfile)
 	   somebody invents a time machine, I think we can safely disregard
 	   it.   This actually works around a stupid Y2K bug that was present
 	   in a very early beta release of dhcpd. */
-	year = atoi (val);
+	year = atol (val);
 	if (year > 1900)
 		year -= 1900;
 
@@ -982,7 +982,7 @@ parse_date_core(cfile)
 			skip_to_semi (cfile);
 		return (TIME)0;
 	}
-	mon = atoi (val) - 1;
+	mon = atol (val) - 1;
 
 	/* Slash separating month from day... */
 	token = next_token (&val, (unsigned *)0, cfile);
@@ -1002,7 +1002,7 @@ parse_date_core(cfile)
 			skip_to_semi (cfile);
 		return (TIME)0;
 	}
-	mday = atoi (val);
+	mday = atol (val);
 
 	/* Hour... */
 	token = next_token (&val, (unsigned *)0, cfile);
@@ -1012,7 +1012,7 @@ parse_date_core(cfile)
 			skip_to_semi (cfile);
 		return (TIME)0;
 	}
-	hour = atoi (val);
+	hour = atol (val);
 
 	/* Colon separating hour from minute... */
 	token = next_token (&val, (unsigned *)0, cfile);
@@ -1032,7 +1032,7 @@ parse_date_core(cfile)
 			skip_to_semi (cfile);
 		return (TIME)0;
 	}
-	min = atoi (val);
+	min = atol (val);
 
 	/* Colon separating minute from second... */
 	token = next_token (&val, (unsigned *)0, cfile);
@@ -1052,12 +1052,12 @@ parse_date_core(cfile)
 			skip_to_semi (cfile);
 		return (TIME)0;
 	}
-	sec = atoi (val);
+	sec = atol (val);
 
 	token = peek_token (&val, (unsigned *)0, cfile);
 	if (token == NUMBER) {
 		token = next_token (&val, (unsigned *)0, cfile);
-		tzoff = atoi (val);
+		tzoff = atol (val);
 	} else
 		tzoff = 0;
 
@@ -1090,7 +1090,7 @@ TIME
 parse_date(cfile)
        struct parse *cfile;
 {
-       int guess;
+       TIME guess;
        guess = parse_date_core(cfile);
 
        /* Make sure the date ends in a semicolon... */
