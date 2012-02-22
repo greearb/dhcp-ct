@@ -236,7 +236,7 @@ int read_client_conf_file (const char *name, struct interface_info *ip,
 	int token;
 	isc_result_t status;
 	
-	if ((file = open (name, O_RDONLY | O_CLOEXEC)) < 0)
+	if ((file = open (name, O_RDONLY)) < 0)
 		return uerr2isc (errno);
 
 	cfile = NULL;
@@ -273,7 +273,7 @@ void read_client_leases ()
 
 	/* Open the lease file.   If we can't open it, just return -
 	   we can safely trust the server to remember our state. */
-	if ((file = open (path_dhclient_db, O_RDONLY | O_CLOEXEC)) < 0)
+	if ((file = open (path_dhclient_db, O_RDONLY)) < 0)
 		return;
 
 	cfile = NULL;

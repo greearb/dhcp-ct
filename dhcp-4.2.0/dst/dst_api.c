@@ -437,7 +437,7 @@ dst_s_write_private_key(const DST_KEY *key)
 			     PRIVATE_KEY, PATH_MAX);
 
 	/* Do not overwrite an existing file */
-	if ((fp = dst_s_fopen(file, "w", 0600)) != NULL) {
+	if ((fp = dst_s_fopen(file, "we", 0600)) != NULL) {
 		int nn;
 		if ((nn = fwrite(encoded_block, 1, len, fp)) != len) {
 			EREPORT(("dst_write_private_key(): Write failure on %s %d != %d errno=%d\n",
@@ -494,7 +494,7 @@ dst_s_read_public_key(const char *in_name, const unsigned in_id, int in_alg)
 	 * flags, proto, alg stored as decimal (or hex numbers FIXME).
 	 * (FIXME: handle parentheses for line continuation.)
 	 */
-	if ((fp = dst_s_fopen(name, "r", 0)) == NULL) {
+	if ((fp = dst_s_fopen(name, "re", 0)) == NULL) {
 		EREPORT(("dst_read_public_key(): Public Key not found %s\n",
 			 name));
 		return (NULL);
@@ -620,7 +620,7 @@ dst_s_write_public_key(const DST_KEY *key)
 		return (0);
 	}
 	/* create public key file */
-	if ((fp = dst_s_fopen(filename, "w+", 0644)) == NULL) {
+	if ((fp = dst_s_fopen(filename, "w+e", 0644)) == NULL) {
 		EREPORT(("DST_write_public_key: open of file:%s failed (errno=%d)\n",
 			 filename, errno));
 		return (0);
@@ -854,7 +854,7 @@ dst_s_read_private_key_file(char *name, DST_KEY *pk_key, unsigned in_id,
 		return (0);
 	}
 	/* first check if we can find the key file */
-	if ((fp = dst_s_fopen(filename, "r", 0)) == NULL) {
+	if ((fp = dst_s_fopen(filename, "re", 0)) == NULL) {
 		EREPORT(("dst_s_read_private_key_file: Could not open file %s in directory %s\n",
 			 filename, dst_path[0] ? dst_path :
 			 (char *) getcwd(NULL, PATH_MAX - 1)));

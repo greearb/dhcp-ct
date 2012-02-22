@@ -1035,7 +1035,7 @@ void db_startup (testp)
 	}
 #endif
 	if (!testp) {
-		db_file = fopen (path_dhcpd_db, "a");
+		db_file = fopen (path_dhcpd_db, "ae");
 		if (!db_file)
 			log_fatal ("Can't open %s for append.", path_dhcpd_db);
 		expire_all_pools ();
@@ -1083,12 +1083,12 @@ int new_lease_file ()
 		     path_dhcpd_db, (int)t) >= sizeof newfname)
 		log_fatal("new_lease_file: lease file path too long");
 
-	db_fd = open (newfname, O_WRONLY | O_TRUNC | O_CREAT, 0664);
+	db_fd = open (newfname, O_WRONLY | O_TRUNC | O_CREAT | O_CLOEXEC, 0664);
 	if (db_fd < 0) {
 		log_error ("Can't create new lease file: %m");
 		return 0;
 	}
-	if ((new_db_file = fdopen(db_fd, "w")) == NULL) {
+	if ((new_db_file = fdopen(db_fd, "we")) == NULL) {
 		log_error("Can't fdopen new lease file: %m");
 		close(db_fd);
 		goto fdfail;

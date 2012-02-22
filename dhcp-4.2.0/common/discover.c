@@ -409,7 +409,7 @@ begin_iface_scan(struct iface_conf_list *ifaces) {
 	int len;
 	int i;
 
-	ifaces->fp = fopen("/proc/net/dev", "r");
+	ifaces->fp = fopen("/proc/net/dev", "re");
 	if (ifaces->fp == NULL) {
 		log_error("Error opening '/proc/net/dev' to list interfaces");
 		return 0;
@@ -444,7 +444,7 @@ begin_iface_scan(struct iface_conf_list *ifaces) {
 
 #ifdef DHCPv6
 	if (local_family == AF_INET6) {
-		ifaces->fp6 = fopen("/proc/net/if_inet6", "r");
+		ifaces->fp6 = fopen("/proc/net/if_inet6", "re");
 		if (ifaces->fp6 == NULL) {
 			log_error("Error opening '/proc/net/if_inet6' to "
 				  "list IPv6 interfaces; %m");

@@ -81,7 +81,7 @@ int if_register_nit (info)
 	struct strioctl sio;
 
 	/* Open a NIT device */
-	sock = open ("/dev/nit", O_RDWR);
+	sock = open ("/dev/nit", O_RDWR | O_CLOEXEC);
 	if (sock < 0)
 		log_fatal ("Can't open NIT device for %s: %m", info -> name);
 

@@ -177,11 +177,11 @@ main(int argc, char **argv) {
 	/* Make sure that file descriptors 0(stdin), 1,(stdout), and
 	   2(stderr) are open. To do this, we assume that when we
 	   open a file the lowest available file descriptor is used. */
-	fd = open("/dev/null", O_RDWR);
+	fd = open("/dev/null", O_RDWR | O_CLOEXEC);
 	if (fd == 0)
-		fd = open("/dev/null", O_RDWR);
+		fd = open("/dev/null", O_RDWR | O_CLOEXEC);
 	if (fd == 1)
-		fd = open("/dev/null", O_RDWR);
+		fd = open("/dev/null", O_RDWR | O_CLOEXEC);
 	if (fd == 2)
 		log_perror = 0; /* No sense logging to /dev/null. */
 	else if (fd != -1)
@@ -520,12 +520,12 @@ main(int argc, char **argv) {
 			exit(0);
 
 		pfdesc = open(path_dhcrelay_pid,
-			       O_CREAT | O_TRUNC | O_WRONLY, 0644);
+			       O_CREAT | O_TRUNC | O_WRONLY | O_CLOEXEC, 0644);
 
 		if (pfdesc < 0) {
 			log_error("Can't create %s: %m", path_dhcrelay_pid);
 		} else {
-			pf = fdopen(pfdesc, "w");
+			pf = fdopen(pfdesc, "we");
 			if (!pf)
 				log_error("Can't fdopen %s: %m",
 				      path_dhcrelay_pid);

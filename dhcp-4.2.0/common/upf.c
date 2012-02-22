@@ -77,7 +77,7 @@ int if_register_upf (info)
 		/* %Audit% Cannot exceed 36 bytes. %2004.06.17,Safe% */
 		sprintf(filename, "/dev/pf/pfilt%d", b);
 
-		sock = open (filename, O_RDWR, 0);
+		sock = open (filename, O_RDWR | O_CLOEXEC, 0);
 		if (sock < 0) {
 			if (errno == EBUSY) {
 				continue;

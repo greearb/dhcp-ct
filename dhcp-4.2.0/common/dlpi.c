@@ -807,7 +807,7 @@ dlpiopen(const char *ifname) {
 	}
 	*dp = '\0';
 	
-	return open (devname, O_RDWR, 0);
+	return open (devname, O_RDWR | O_CLOEXEC, 0);
 }
 
 /*

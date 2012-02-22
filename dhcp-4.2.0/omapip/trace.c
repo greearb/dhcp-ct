@@ -141,10 +141,10 @@ isc_result_t trace_begin (const char *filename,
 		return DHCP_R_INVALIDARG;
 	}
 
-	traceoutfile = open (filename, O_CREAT | O_WRONLY | O_EXCL, 0600);
+	traceoutfile = open (filename, O_CREAT | O_WRONLY | O_EXCL | O_CLOEXEC, 0600);
 	if (traceoutfile < 0 && errno == EEXIST) {
 		log_error ("WARNING: Overwriting trace file \"%s\"", filename);
-		traceoutfile = open (filename, O_WRONLY | O_EXCL | O_TRUNC,
+		traceoutfile = open (filename, O_WRONLY | O_EXCL | O_TRUNC | O_CLOEXEC,
 				     0600);
 	}
 
@@ -431,7 +431,7 @@ void trace_file_replay (const char *filename)
 	isc_result_t result;
 	int len;
 
-	traceinfile = fopen (filename, "r");
+	traceinfile = fopen (filename, "re");
 	if (!traceinfile) {
 		log_error("Can't open tracefile %s: %m", filename);
 		return;

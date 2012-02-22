@@ -116,7 +116,7 @@ isc_result_t read_conf_file (const char *filename, struct group *group,
 	}
 #endif
 
-	if ((file = open (filename, O_RDONLY)) < 0) {
+	if ((file = open (filename, O_RDONLY | O_CLOEXEC)) < 0) {
 		if (leasep) {
 			log_error ("Can't open lease database %s: %m --",
 				   path_dhcpd_db);

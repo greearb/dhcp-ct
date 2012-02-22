@@ -685,7 +685,7 @@ ldap_start (void)
 
   if (ldap_debug_file != NULL && ldap_debug_fd == -1)
     {
-      if ((ldap_debug_fd = open (ldap_debug_file, O_CREAT | O_TRUNC | O_WRONLY,
+      if ((ldap_debug_fd = open (ldap_debug_file, O_CREAT | O_TRUNC | O_WRONLY | O_CLOEXEC,
                                  S_IRUSR | S_IWUSR)) < 0)
         log_error ("Error opening debug LDAP log file %s: %s", ldap_debug_file,
                    strerror (errno));

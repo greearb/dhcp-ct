@@ -268,11 +268,11 @@ main(int argc, char **argv) {
         /* Make sure that file descriptors 0 (stdin), 1, (stdout), and
            2 (stderr) are open. To do this, we assume that when we
            open a file the lowest available file descriptor is used. */
-        fd = open("/dev/null", O_RDWR);
+        fd = open("/dev/null", O_RDWR | O_CLOEXEC);
         if (fd == 0)
-                fd = open("/dev/null", O_RDWR);
+                fd = open("/dev/null", O_RDWR | O_CLOEXEC);
         if (fd == 1)
-                fd = open("/dev/null", O_RDWR);
+                fd = open("/dev/null", O_RDWR | O_CLOEXEC);
         if (fd == 2)
                 log_perror = 0; /* No sense logging to /dev/null. */
         else if (fd != -1)
@@ -780,7 +780,7 @@ main(int argc, char **argv) {
 #endif /* PARANOIA */
 
 	/* Read previous pid file. */
-	if ((i = open (path_dhcpd_pid, O_RDONLY)) >= 0) {
+	if ((i = open (path_dhcpd_pid, O_RDONLY | O_CLOEXEC)) >= 0) {
 		status = read(i, pbuf, (sizeof pbuf) - 1);
 		close (i);
 		if (status > 0) {
@@ -798,7 +798,7 @@ main(int argc, char **argv) {
 	}
 
         /* Write new pid file. */
-        if ((i = open(path_dhcpd_pid, O_WRONLY|O_CREAT|O_TRUNC, 0644)) >= 0) {
+        if ((i = open(path_dhcpd_pid, O_WRONLY|O_CREAT|O_TRUNC|O_CLOEXEC, 0644)) >= 0) {
                 sprintf(pbuf, "%d\n", (int) getpid());
                 IGNORE_RET (write(i, pbuf, strlen(pbuf)));
                 close(i);
@@ -824,9 +824,9 @@ main(int argc, char **argv) {
                 close(2);
 
                 /* Reopen them on /dev/null. */
-                open("/dev/null", O_RDWR);
-                open("/dev/null", O_RDWR);
-                open("/dev/null", O_RDWR);
+                open("/dev/null", O_RDWR | O_CLOEXEC);
+                open("/dev/null", O_RDWR | O_CLOEXEC);
+                open("/dev/null", O_RDWR | O_CLOEXEC);
                 log_perror = 0; /* No sense logging to /dev/null. */
 
        		IGNORE_RET (chdir("/"));

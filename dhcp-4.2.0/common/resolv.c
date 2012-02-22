@@ -49,7 +49,7 @@ void read_resolv_conf (parse_time)
 	struct domain_search_list *dp, *dl, *nd;
 	isc_result_t status;
 
-	if ((file = open (path_resolv_conf, O_RDONLY)) < 0) {
+	if ((file = open (path_resolv_conf, O_RDONLY | O_CLOEXEC)) < 0) {
 		log_error ("Can't open %s: %m", path_resolv_conf);
 		return;
 	}

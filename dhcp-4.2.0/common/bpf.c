@@ -94,7 +94,7 @@ int if_register_bpf (info)
 	for (b = 0; 1; b++) {
 		/* %Audit% 31 bytes max. %2004.06.17,Safe% */
 		sprintf(filename, BPF_FORMAT, b);
-		sock = open (filename, O_RDWR, 0);
+		sock = open (filename, O_RDWR | O_CLOEXEC, 0);
 		if (sock < 0) {
 			if (errno == EBUSY) {
 				continue;

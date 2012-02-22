@@ -269,7 +269,7 @@ get_dev_random(u_char *output, unsigned size)
 
 	s = stat("/dev/random", &st);
 	if (s == 0 && S_ISCHR(st.st_mode)) {
-		if ((fd = open("/dev/random", O_RDONLY | O_NONBLOCK)) != -1) {
+		if ((fd = open("/dev/random", O_RDONLY | O_NONBLOCK | O_CLOEXEC)) != -1) {
 			if ((n = read(fd, output, size)) < 0)
 				n = 0;
 			close(fd);
@@ -480,7 +480,7 @@ digest_file(dst_work *work)
 		work->file_digest = dst_free_key(work->file_digest);
 		return (0);
 	}
-	if ((fp = fopen(name, "r")) == NULL) 
+	if ((fp = fopen(name, "re")) == NULL) 
 		return (0);
 	for (no = 0; (i = fread(buf, sizeof(*buf), sizeof(buf), fp)) > 0; 
 	     no += i) 
