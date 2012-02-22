@@ -1056,7 +1056,8 @@ enum dhcp_state {
 	S_BOUND = 5,
 	S_RENEWING = 6,
 	S_REBINDING = 7,
-	S_STOPPED = 8
+	S_STOPPED = 8,
+	S_DECLINED = 9
 };
 
 /* Authentication and BOOTP policy possibilities (not all values work
