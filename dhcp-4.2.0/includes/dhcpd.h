@@ -1119,6 +1119,9 @@ struct client_config {
 	int do_forward_update;		/* If nonzero, and if we have the
 					   information we need, update the
 					   A record for the address we get. */
+
+	int bootp_broadcast_always;	/* If nonzero, always set the BOOTP_BROADCAST
+					   flag in requests */
 };
 
 /* Per-interface state used in the dhcp client... */

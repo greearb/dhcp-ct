@@ -803,6 +803,8 @@ intern(char *atom, enum dhcp_token dfv) {
 			return BALANCE;
 		if (!strcasecmp (atom + 1, "ound"))
 			return BOUND;
+		if (!strcasecmp (atom + 1, "ootp-broadcast-always"))
+			return BOOTP_BROADCAST_ALWAYS;
 		break;
 	      case 'c':
 		if (!strcasecmp(atom + 1, "ase"))
