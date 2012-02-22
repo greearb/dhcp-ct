@@ -913,6 +913,21 @@ classless IP routing - it does not include a subnet mask.   Since
 classless IP routing is now the most widely deployed routing standard,
 this option is virtually useless, and is not implemented by any of the
 popular DHCP clients, for example the Microsoft DHCP client.
+.PP
+NOTE to Fedora dhclient users:
+.br
+dhclient-script interprets trailing 0 octets of the target as indicating
+the subnet class of the route, so for the following static-routes value:
+.br
+        option static-routes 172.0.0.0 172.16.2.254,
+.br
+                             192.168.0.0 192.168.2.254;
+.br
+dhclient-script will create routes:
+.br
+        172/8 via 172.16.2.254 dev $interface
+.br
+        192.168/16 via 192.168.2.254 dev $interface
 .RE
 .PP
 .nf

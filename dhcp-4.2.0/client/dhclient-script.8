@@ -47,7 +47,7 @@ customizations are needed, they should be possible using the enter and
 exit hooks provided (see HOOKS for details).   These hooks will allow the
 user to override the default behaviour of the client in creating a
 .B /etc/resolv.conf
-file.
+file, and to handle DHCP options not handled by default.
 .PP
 No standard client script exists for some operating systems, even though
 the actual client may work, so a pioneering user may well need to create
@@ -91,6 +91,26 @@ present.   The
 .B ETCDIR/dhclient-exit-hooks
 script can modify the valid of exit_status to change the exit status
 of dhclient-script.
+.PP
+Immediately after dhclient brings an interface UP with a new IP address,
+subnet mask, and routes, in the REBOOT/BOUND states, it will check for the
+existence of an executable
+.B ETCDIR/dhclient-up-hooks
+script, and source it if found. This script can handle DHCP options in
+the environment that are not handled by default. A per-interface.
+.B ETCDIR/dhclient-${IF}-up-hooks
+script will override the generic script and be sourced when interface
+$IF has been brought up.
+.PP
+Immediately before dhclient brings an interface DOWN, removing its IP
+address, subnet mask, and routes, in the STOP/RELEASE  states, it will
+check for the existence of an executable
+.B ETCDIR/dhclient-down-hooks
+script, and source it if found. This script can handle DHCP options in
+the environment that are not handled by default. A per-interface
+.B ETCDIR/dhclient-${IF}-down-hooks
+script will override the generic script and be sourced when interface
+$IF is about to be brought down.
 .SH OPERATION
 When dhclient needs to invoke the client configuration script, it
 defines a set of variables in the environment, and then invokes

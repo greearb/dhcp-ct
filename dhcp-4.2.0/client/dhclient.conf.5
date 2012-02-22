@@ -186,7 +186,8 @@ responding to the client send the client its values for the specified
 options.   Only the option names should be specified in the request
 statement - not option parameters.   By default, the DHCPv4 client
 requests the subnet-mask, broadcast-address, time-offset, routers,
-domain-name, domain-name-servers and host-name options while the DHCPv6
+domain-search, domain-name, domain-name-servers, host-name, nis-domain,
+nis-servers, ntp-servers and interface-mtu options while the DHCPv6
 client requests the dhcp6 name-servers and domain-search options.  Note
 that if you enter a \'request\' statement, you over-ride these defaults
 and these options will not be requested.
@@ -672,6 +673,17 @@ know the DHCP service(s) anycast MAC address prior to configuring your
 client.  The \fIlink-type\fR and \fImac-address\fR parameters are configured
 in a similar manner to the \fBhardware\fR statement.
 .PP
+ \fBbootp-broadcast-always;\fR
+.PP
+The
+.B bootp-broadcast-always
+statement instructs dhclient to always set the bootp broadcast flag in
+request packets, so that servers will always broadcast replies.
+This is equivalent to supplying the dhclient -B argument, and has
+the same effect as specifying 'always-broadcast' in the server's dhcpd.conf.
+This option is provided as an extension to enable dhclient to work
+on IBM s390 Linux guests.
+.PP
 .SH SAMPLE
 The following configuration file is used on a laptop running NetBSD
 1.3.   The laptop has an IP alias of 192.5.5.213, and has one
@@ -694,10 +706,10 @@ interface "ep0" {
     hardware ethernet 00:a0:24:ab:fb:9c;
     send dhcp-client-identifier 1:0:a0:24:ab:fb:9c;
     send dhcp-lease-time 3600;
-    supersede domain-name "fugue.com rc.vix.com home.vix.com";
+    supersede domain-search "fugue.com", "rc.vix.com", "home.vix.com";
     prepend domain-name-servers 127.0.0.1;
     request subnet-mask, broadcast-address, time-offset, routers,
-	    domain-name, domain-name-servers, host-name;
+	    domain-search, domain-name, domain-name-servers, host-name;
     require subnet-mask, domain-name-servers;
     script "CLIENTBINDIR/dhclient-script";
     media "media 10baseT/UTP", "media 10base2/BNC";
