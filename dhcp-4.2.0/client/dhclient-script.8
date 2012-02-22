@@ -239,6 +239,16 @@ repeatedly initialized to the values provided by one server, and then
 the other.   Assuming the information provided by both servers is
 valid, this shouldn't cause any real problems, but it could be
 confusing.
+.PP
+Normally, if dhclient was compiled with libcap-ng support,
+dhclient drops most capabilities immediately upon startup.
+While more secure, this greatly restricts the additional actions that
+hooks in dhclient-script can take. For example, any daemons that
+dhclient-script starts or restarts will inherit the restricted
+capabilities as well, which may interfere with their correct operation.
+Thus, the
+.BI \-nc
+option can be used to prevent dhclient from dropping capabilities.
 .SH SEE ALSO
 dhclient(8), dhcpd(8), dhcrelay(8), dhclient.conf(5) and
 dhclient.leases(5).

@@ -109,6 +109,9 @@ relay
 .B -n
 ]
 [
+.B -nc
+]
+[
 .B -nw
 ]
 [
@@ -393,6 +396,32 @@ in any consistent or useful way.
 Do not configure any interfaces.  Most useful combined with the
 .B -w
 option.
+
+.TP
+.BI \-nc
+Do not drop capabilities.
+
+Normally, if
+.B dhclient
+was compiled with libcap-ng support,
+.B dhclient
+drops most capabilities immediately upon startup.  While more secure,
+this greatly restricts the additional actions that hooks in
+.B dhclient-script (8)
+can take.  (For example, any daemons that 
+.B dhclient-script (8)
+starts or restarts will inherit the restricted capabilities as well,
+which may interfere with their correct operation.)  Thus, the
+.BI \-nc
+option can be used to prevent
+.B dhclient
+from dropping capabilities.
+
+The
+.BI \-nc
+option is ignored if
+.B dhclient
+was not compiled with libcap-ng support.
 
 .TP
 .BI \-nw

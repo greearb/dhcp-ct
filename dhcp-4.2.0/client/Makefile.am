@@ -5,7 +5,7 @@ dhclient_SOURCES = clparse.c dhclient.c dhc6.c \
 		   scripts/netbsd scripts/nextstep scripts/openbsd \
 		   scripts/solaris scripts/openwrt
 dhclient_LDADD = ../common/libdhcp.a ../omapip/libomapi.a \
-		 ../bind/lib/libdns.a ../bind/lib/libisc.a
+		 ../bind/lib/libdns.a ../bind/lib/libisc.a $(CAPNG_LDADD)
 man_MANS = dhclient.8 dhclient-script.8 dhclient.conf.5 dhclient.leases.5
 EXTRA_DIST = $(man_MANS)
 
