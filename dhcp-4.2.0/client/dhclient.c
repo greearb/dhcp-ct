@@ -1013,6 +1013,10 @@ static void usage()
 		  "[-s server]");
 	log_error("                [-cf config-file] [-lf lease-file]%s",
 		  "[-pf pid-file] [-e VAR=val]");
+	log_error("                [-I <dhcp-client-identifier>] [-B]");
+	log_error("                [-H <host-name> | -F <fqdn.fqdn>] [-timeout <timeout>]");
+	log_error("                [-V <vendor-class-identifier>]");
+	log_error("                [-R <request option list>]");
 	log_fatal("                [-sf script-file] [interface]");
 }
 
