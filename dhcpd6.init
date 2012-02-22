@@ -1,0 +1,153 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides: dhcpd
+# Default-Start:
+# Default-Stop:
+# Should-Start:
+# Required-Start: $network
+# Required-Stop:
+# Short-Description: Start and stop the DHCPv6 server
+# Description: dhcpd provides the Dynamic Host Configuration Protocol (DHCPv6)
+#              server.
+### END INIT INFO
+#
+# The fields below are left around for legacy tools (will remove later).
+#
+# chkconfig: - 65 35
+# description: dhcpd provides the Dynamic Host Configuration Protocol (DHCPv6) \
+#              server
+# processname: dhcpd
+# config: /etc/dhcp/dhcpd6.conf
+# config: /var/lib/dhcpd/dhcpd6.leases
+# pidfile: /var/run/dhcpd6.pid
+
+. /etc/rc.d/init.d/functions
+
+RETVAL=0
+
+prog=dhcpd
+exec=/usr/sbin/dhcpd
+lockfile=/var/lock/subsys/dhcpd6
+pidfile=/var/run/dhcpd6.pid
+statedir=/var/lib/dhcpd
+default_config=/etc/dhcp/dhcpd6.conf
+
+[ -f /etc/sysconfig/dhcpd6 ] && . /etc/sysconfig/dhcpd6
+
+# if the user specified a different config file, make sure we reference it
+findConfig() {
+    for arg in $DHCPDARGS ; do
+        if [ "$found" = 1 ]; then
+            [ -f "$arg" ] && echo "$arg"
+            return
+        fi
+        if [ "$arg" = "-cf" ]; then
+            found=1
+            continue
+        fi
+    done
+    echo $default_config
+}
+
+config="$(findConfig "$DHCPDARGS")"
+
+if [ ! -f $statedir/dhcpd6.leases ] ; then
+    mkdir -p $statedir
+    touch $statedir/dhcpd6.leases
+    [ -x /sbin/restorecon ] && [ -d /selinux ] && /sbin/restorecon $statedir/dhcpd6.leases >/dev/null 2>&1
+fi
+
+configtest() {
+    [ -x $exec ] || return 5
+    [ -f $config ] || return 6
+    $exec -q -t -6 -cf $config
+    RETVAL=$?
+    if [ $RETVAL -eq 1 ]; then
+        $exec -t -6 -cf $config
+    else
+        echo "Syntax: OK" >&2
+    fi
+    return $RETVAL
+}
+
+rh_status() {
+    status -p $pidfile -l $(basename $lockfile) $exec
+}
+
+rh_status_q() {
+    rh_status >/dev/null 2>&1
+}
+
+start() {
+    [ `id -u` -eq 0 ] || return 4
+    [ -x $exec ] || return 5
+    [ -f $config ] || return 6
+
+    rh_status_q && return 0
+
+    # add default dhcpd6.conf configuration file if there's no one in DHCPDARGS
+    [ "${config}" = "${default_config}" ] && DHCPDARGS="$DHCPDARGS -cf $default_config"
+
+    echo -n $"Starting $prog (DHCPv6): "
+    daemon --pidfile=$pidfile $exec -6 $DHCPDARGS 2>/dev/null
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch $lockfile
+    return $RETVAL
+}
+
+stop() {
+    [ `id -u` -eq 0 ] || return 4
+
+    rh_status_q || return 0
+
+    echo -n $"Shutting down $prog (DHCPv6): "
+    killproc -p $pidfile $prog
+    RETVAL=$?
+
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lockfile
+    return $RETVAL
+}
+
+usage() {
+    echo $"Usage: $0 {start|stop|restart|force-reload|condrestart|try-restart|configtest|status}"
+}
+
+if [ $# -gt 1 ]; then
+    exit 2
+fi
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart|force-reload)
+        stop ; start
+        ;;
+    condrestart|try-restart)
+        rh_status_q || exit 0
+        stop ; start
+        ;;
+    reload)
+        usage
+        # unimplemented feature
+        exit 3
+        ;;
+    configtest)
+        configtest
+        ;;
+    status)
+        rh_status
+        ;;
+    *)
+        usage
+        exit 2
+        ;;
+esac
+
+exit $?

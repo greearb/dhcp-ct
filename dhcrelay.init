@@ -1,0 +1,121 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides: dhcrelay
+# Default-Start:
+# Default-Stop:
+# Should-Start:
+# Required-Start: $network
+# Required-Stop:
+# Short-Description: Start and stop the DHCP relay server
+# Description: dhcrelay provides the Dynamic Host Configuration Protocol (DHCP)
+#              relay server.  This is required when your DHCP server is on
+#              another network segment from the clients.
+### END INIT INFO
+#
+# The fields below are left around for legacy tools (will remove later).
+#
+# chkconfig: - 65 35
+# description: dhcrelay provides a relay for Dynamic Host Control Protocol.
+# processname: dhcrelay
+# # pidfile: /var/run/dhcrelay.pid
+
+. /etc/rc.d/init.d/functions
+
+RETVAL=0
+
+prog=dhcrelay
+exec=/usr/sbin/dhcrelay
+lockfile=/var/lock/subsys/dhcrelay
+pidfile=/var/run/dhcrelay.pid
+config=/etc/sysconfig/dhcrelay
+
+# The dhcrelay daemon uses the sysconfig file for configuration information.
+# There is no native configuration file for this program and you must specify
+# its settings on the command line.
+[ -f /etc/sysconfig/dhcrelay ] && . /etc/sysconfig/dhcrelay
+
+configtest() {
+    [ -x $exec ] || exit 5
+    [ -f $config ] || exit 6
+    [ -z "$DHCPSERVERS" ] && exit 6
+    return 0
+}
+
+rh_status() {
+    status $exec
+}
+
+rh_status_q() {
+    rh_status >/dev/null 2>&1
+}
+
+start() {
+    [ `id -u` -eq 0 ] || exit 4
+    [ -x $exec ] || exit 5
+    [ -f $config ] || exit 6
+
+    rh_status_q && return 0
+
+    echo -n $"Starting $prog: "
+    daemon $exec $DHCRELAYARGS $([ -n "$INTERFACES" ] && for int in $INTERFACES ; do echo -n " -i $int" ; done) $DHCPSERVERS 2>/dev/null
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch $lockfile
+    return $RETVAL
+}
+
+stop() {
+    [ `id -u` -eq 0 ] || exit 4
+
+    rh_status_q || return 0
+
+    echo -n $"Shutting down $prog: "
+    killproc $prog
+    RETVAL=$?
+
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lockfile
+    return $RETVAL
+}
+
+usage() {
+    echo $"Usage: $0 {start|stop|restart|force-reload|condrestart|try-restart|configtest|status}"
+}
+
+if [ $# -gt 1 ]; then
+    exit 2
+fi
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart|force-reload)
+        stop ; start
+        ;;
+    condrestart|try-restart)
+        rh_status_q || exit 0
+        stop ; start
+        ;;
+    reload)
+        usage
+        # unimplemented feature
+        exit 3
+        ;;
+    configtest)
+        configtest
+        ;;
+    status)
+        rh_status
+        ;;
+    *)
+        usage
+        exit 2
+        ;;
+esac
+
+exit $?
