@@ -44,16 +44,16 @@ for a given lease, the last one in the file is the current one.
 When dhcpd is first installed, there is no lease database.   However,
 dhcpd requires that a lease database be present before it will start.
 To make the initial lease database, just create an empty file called
-DBDIR/dhcpd.leases.   You can do this with:
+/var/lib/dhcpd/dhcpd.leases.   You can do this with:
 .PP
 .nf
-	touch DBDIR/dhcpd.leases
+	touch /var/lib/dhcpd/dhcpd.leases
 .fi
 .PP
 In order to prevent the lease database from growing without bound, the
 file is rewritten from time to time.   First, a temporary lease
 database is created and all known leases are dumped to it.   Then, the
-old lease database is renamed DBDIR/dhcpd.leases~.   Finally, the
+old lease database is renamed /var/lib/dhcpd/dhcpd.leases~.   Finally, the
 newly written lease database is moved into place.
 .SH FORMAT
 Lease descriptions are stored in a format that is parsed by the same
@@ -272,7 +272,7 @@ possible: \fBunknown-state\fR, \fBpartner-down\fR, \fBnormal\fR,
 \fBcommunications-interrupted\fR, \fBresolution-interrupted\fR,
 \fBpotential-conflict\fR, \fBrecover\fR, \fBrecover-done\fR,
 \fBshutdown\fR, \fBpaused\fR, and \fBstartup\fR.
-.B DBDIR/dhcpd.leases
+.B /var/lib/dhcpd/dhcpd.leases
 .SH SEE ALSO
 dhcpd(8), dhcp-options(5), dhcp-eval(5), dhcpd.conf(5), RFC2132, RFC2131.
 .SH AUTHOR

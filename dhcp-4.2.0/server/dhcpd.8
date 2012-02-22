@@ -155,7 +155,7 @@ BOOTP client, permanently assigning an address to each client.
 Whenever changes are made to the dhcpd.conf file, dhcpd must be
 restarted.   To restart dhcpd, send a SIGTERM (signal 15) to the
 process ID contained in
-.IR RUNDIR/dhcpd.pid ,
+.IR /var/run/dhcpd.pid ,
 and then re-invoke dhcpd.  Because the DHCP server database is not as
 lightweight as a BOOTP database, dhcpd does not automatically restart
 itself when it sees a change to the dhcpd.conf file.
@@ -758,8 +758,8 @@ Indicates the number of update messages that have been received from
 the failover partner but not yet processed.
 .RE
 .SH FILES
-.B ETCDIR/dhcpd.conf, DBDIR/dhcpd.leases, RUNDIR/dhcpd.pid,
-.B DBDIR/dhcpd.leases~.
+.B /etc/dhcp/dhcpd.conf, /var/lib/dhcpd/dhcpd.leases, /var/run/dhcpd.pid,
+.B /var/lib/dhcpd/dhcpd.leases~.
 .SH SEE ALSO
 dhclient(8), dhcrelay(8), dhcpd.conf(5), dhcpd.leases(5)
 .SH AUTHOR
