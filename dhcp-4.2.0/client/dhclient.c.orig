@@ -137,11 +137,11 @@ main(int argc, char **argv) {
 	/* Make sure that file descriptors 0 (stdin), 1, (stdout), and
 	   2 (stderr) are open. To do this, we assume that when we
 	   open a file the lowest available file descriptor is used. */
-	fd = open("/dev/null", O_RDWR);
+	fd = open("/dev/null", O_RDWR | O_CLOEXEC);
 	if (fd == 0)
-		fd = open("/dev/null", O_RDWR);
+		fd = open("/dev/null", O_RDWR | O_CLOEXEC);
 	if (fd == 1)
-		fd = open("/dev/null", O_RDWR);
+		fd = open("/dev/null", O_RDWR | O_CLOEXEC);
 	if (fd == 2)
 		log_perror = 0; /* No sense logging to /dev/null. */
 	else if (fd != -1)
@@ -488,7 +488,7 @@ main(int argc, char **argv) {
 		int e;
 
 		oldpid = 0;
-		if ((pidfd = fopen(path_dhclient_pid, "r")) != NULL) {
+		if ((pidfd = fopen(path_dhclient_pid, "re")) != NULL) {
 			e = fscanf(pidfd, "%ld\n", &temp);
 			oldpid = (pid_t)temp;
 
@@ -530,7 +530,7 @@ main(int argc, char **argv) {
 					strncpy(new_path_dhclient_pid, path_dhclient_pid, pfx);
 					sprintf(new_path_dhclient_pid + pfx, "-%s.pid", ip->name);
 
-					if ((pidfd = fopen(new_path_dhclient_pid, "r")) != NULL) {
+					if ((pidfd = fopen(new_path_dhclient_pid, "re")) != NULL) {
 						e = fscanf(pidfd, "%ld\n", &temp);
 						oldpid = (pid_t)temp;
 
@@ -555,7 +555,7 @@ main(int argc, char **argv) {
 		int dhc_running = 0;
 		char procfn[256] = "";
 
-		if ((pidfp = fopen(path_dhclient_pid, "r")) != NULL) {
+		if ((pidfp = fopen(path_dhclient_pid, "re")) != NULL) {
 			if ((fscanf(pidfp, "%ld", &temp)==1) && ((dhcpid=(pid_t)temp) > 0)) {
 				snprintf(procfn,256,"/proc/%u",dhcpid);
 				dhc_running = (access(procfn, F_OK) == 0);
@@ -2935,7 +2935,7 @@ void rewrite_client_leases ()
 
 	if (leaseFile != NULL)
 		fclose (leaseFile);
-	leaseFile = fopen (path_dhclient_db, "w");
+	leaseFile = fopen (path_dhclient_db, "we");
 	if (leaseFile == NULL) {
 		log_error ("can't create %s: %m", path_dhclient_db);
 		return;
@@ -3039,7 +3039,7 @@ write_duid(struct data_string *duid)
 		return DHCP_R_INVALIDARG;
 
 	if (leaseFile == NULL) {	/* XXX? */
-		leaseFile = fopen(path_dhclient_db, "w");
+		leaseFile = fopen(path_dhclient_db, "we");
 		if (leaseFile == NULL) {
 			log_error("can't create %s: %m", path_dhclient_db);
 			return ISC_R_IOERROR;
@@ -3219,7 +3219,7 @@ int write_client_lease (client, lease, rewrite, makesure)
 		return 1;
 
 	if (leaseFile == NULL) {	/* XXX */
-		leaseFile = fopen (path_dhclient_db, "w");
+		leaseFile = fopen (path_dhclient_db, "we");
 		if (leaseFile == NULL) {
 			log_error ("can't create %s: %m", path_dhclient_db);
 			return 0;
@@ -3672,9 +3672,9 @@ void go_daemon ()
 	close(2);
 
 	/* Reopen them on /dev/null. */
-	open("/dev/null", O_RDWR);
-	open("/dev/null", O_RDWR);
-	open("/dev/null", O_RDWR);
+	open("/dev/null", O_RDWR | O_CLOEXEC);
+	open("/dev/null", O_RDWR | O_CLOEXEC);
+	open("/dev/null", O_RDWR | O_CLOEXEC);
 
 	write_client_pid_file ();
 
@@ -3686,14 +3686,14 @@ void write_client_pid_file ()
 	FILE *pf;
 	int pfdesc;
 
-	pfdesc = open (path_dhclient_pid, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+	pfdesc = open (path_dhclient_pid, O_CREAT | O_TRUNC | O_WRONLY | O_CLOEXEC, 0644);
 
 	if (pfdesc < 0) {
 		log_error ("Can't create %s: %m", path_dhclient_pid);
 		return;
 	}
 
-	pf = fdopen (pfdesc, "w");
+	pf = fdopen (pfdesc, "we");
 	if (!pf)
 		log_error ("Can't fdopen %s: %m", path_dhclient_pid);
 	else {

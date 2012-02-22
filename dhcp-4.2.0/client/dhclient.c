@@ -2326,6 +2326,7 @@ void send_request (cpp)
 {
 	struct client_state *client = cpp;
 
+	int i;
 	int result;
 	int interval;
 	struct sockaddr_in destination;
@@ -2385,6 +2386,22 @@ void send_request (cpp)
 		/* Now do a preinit on the interface so that we can
 		   discover a new address. */
 		script_init (client, "PREINIT", (struct string_list *)0);
+
+		/* Has an active lease */
+		if (client -> interface -> addresses != NULL) {
+			for (i = 0; i < client -> interface -> address_count; i++) {
+				if (client -> active &&
+				    client -> active -> is_bootp &&
+				    client -> active -> expiry > cur_time &&
+				    client -> interface -> addresses[i].s_addr != 0 &&
+				    client -> active -> address.len == 4 &&
+				    memcpy (client -> active -> address.iabuf, &(client -> interface -> addresses[i]), 4) == 0) {
+					client_envadd (client, "", "keep_old_ip", "%s", "yes");
+					break;
+				}
+			}
+		}
+
 		if (client -> alias)
 			script_write_params (client, "alias_",
 					     client -> alias);
