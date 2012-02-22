@@ -409,7 +409,7 @@ main(int argc, char **argv) {
 				log_fatal ("Insufficient memory to %s %s: %s",
 					   "record interface", argv [i],
 					   isc_result_totext (result));
-			strcpy (tmp -> name, argv [i]);
+			strncpy (tmp -> name, argv [i], sizeof (tmp -> name));
 			if (interfaces) {
 				interface_reference (&tmp -> next,
 						     interfaces, MDL);
