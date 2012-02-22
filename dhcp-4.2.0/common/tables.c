@@ -207,7 +207,7 @@ static struct option dhcp_options[] = {
 	{ "netinfo-server-tag", "t",		&dhcp_universe, 113, 1 },
 	{ "default-url", "t",			&dhcp_universe, 114, 1 },
 	{ "subnet-selection", "I",		&dhcp_universe, 118, 1 },
-	{ "domain-search", "Dc",		&dhcp_universe, 119, 1 },
+	{ "domain-search", "D",		&dhcp_universe, 119, 1 },
 	{ "vivco", "Evendor-class.",		&dhcp_universe, 124, 1 },
 	{ "vivso", "Evendor.",			&dhcp_universe, 125, 1 },
 #if 0
