@@ -706,7 +706,11 @@ cons_options(struct packet *inpacket, struct dhcp_packet *outpacket,
 		 * packet.
 		 */
 		priority_list[priority_len++] = DHO_SUBNET_MASK;
-		priority_list[priority_len++] = DHO_ROUTERS;
+		if (op = lookup_option(&dhcp_universe, cfg_options,
+								DHO_CLASSLESS_STATIC_ROUTES))
+			priority_list[priority_len++] = DHO_CLASSLESS_STATIC_ROUTES;
+		else
+			priority_list[priority_len++] = DHO_ROUTERS;
 		priority_list[priority_len++] = DHO_DOMAIN_NAME_SERVERS;
 		priority_list[priority_len++] = DHO_HOST_NAME;
 		priority_list[priority_len++] = DHO_FQDN;
@@ -1683,6 +1687,7 @@ const char *pretty_print_option (option, data, len, emit_commas, emit_quotes)
 	const unsigned char *dp = data;
 	char comma;
 	unsigned long tval;
+        unsigned int octets = 0;
 
 	if (emit_commas)
 		comma = ',';
@@ -1691,6 +1696,7 @@ const char *pretty_print_option (option, data, len, emit_commas, emit_quotes)
 
 	memset (enumbuf, 0, sizeof enumbuf);
 
+	if (option->format[0] != 'R') { /* see explanation lower */
 	/* Figure out the size of the data. */
 	for (l = i = 0; option -> format [i]; i++, l++) {
 		if (l >= sizeof(fmtbuf) - 1)
@@ -1840,6 +1846,33 @@ const char *pretty_print_option (option, data, len, emit_commas, emit_quotes)
 	if (numhunk < 0)
 		numhunk = 1;
 
+	} else { /* option->format[i] == 'R') */
+		/* R (destination descriptor) has variable length.
+		 * We can find it only in classless static route option,
+		 * so we are for sure parsing classless static route option now.
+		 * We go through whole the option to check whether there are no
+		 * missing/extra bytes.
+		 * I didn't find out how to improve the existing code and that's the
+		 * reason for this separate 'else' where I do my own checkings.
+		 * I know it's little bit unsystematic, but it works.
+		 */
+		numhunk = 0;
+		numelem = 2; /* RI */
+		fmtbuf[0]='R'; fmtbuf[1]='I'; fmtbuf[2]=0;
+		for (i =0; i < len; i = i + octets + 5) {
+			if (data[i] > 32) { /* subnet mask width */
+				log_error ("wrong subnet mask width in destination descriptor");
+				break;
+			}
+			numhunk++;
+			octets = ((data[i]+7) / 8);
+		}
+		if (i != len) {
+			log_error ("classless static routes option has wrong size or "
+					   "there's some garbage in format");
+		}
+	}
+
 	/* Cycle through the array (or hunk) printing the data. */
 	for (i = 0; i < numhunk; i++) {
 		for (j = 0; j < numelem; j++) {
@@ -1978,6 +2011,20 @@ const char *pretty_print_option (option, data, len, emit_commas, emit_quotes)
 				strcpy(op, piaddr(iaddr));
 				dp += 4;
 				break;
+
+			      case 'R':
+				if (dp[0] <= 32)
+					iaddr.len = (((dp[0]+7)/8)+1);
+				else {
+					log_error ("wrong subnet mask width in destination descriptor");
+					return "<error>";
+				}
+
+				memcpy(iaddr.iabuf, dp, iaddr.len);
+				strcpy(op, pdestdesc(iaddr));
+				dp += iaddr.len;
+				break;
+
 			      case '6':
 				iaddr.len = 16;
 				memcpy(iaddr.iabuf, dp, 16);

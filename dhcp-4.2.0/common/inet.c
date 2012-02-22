@@ -526,6 +526,60 @@ free_iaddrcidrnetlist(struct iaddrcidrnetlist **result) {
 	return ISC_R_SUCCESS;
 }
 
+static const char *
+inet_ntopdd(const unsigned char *src, unsigned srclen, char *dst, size_t size)
+{
+	char tmp[sizeof("32.255.255.255.255")];
+	int len;
+
+	switch (srclen) {
+		case 2:
+			len = sprintf (tmp, "%u.%u", src[0], src[1]);
+			break;
+		case 3:
+			len = sprintf (tmp, "%u.%u.%u", src[0], src[1], src[2]);
+			break;
+		case 4:
+			len = sprintf (tmp, "%u.%u.%u.%u", src[0], src[1], src[2], src[3]);
+			break;
+		case 5:
+			len = sprintf (tmp, "%u.%u.%u.%u.%u", src[0], src[1], src[2], src[3], src[4]);
+			break;
+		default:
+			return NULL;
+	}
+	if (len < 0)
+		return NULL;
+
+	if (len > size) {
+		errno = ENOSPC;
+		return NULL;
+	}
+
+	return strcpy (dst, tmp);
+}
+
+/* pdestdesc() turns an iaddr structure into a printable dest. descriptor */
+const char *
+pdestdesc(const struct iaddr addr) {
+	static char pbuf[sizeof("255.255.255.255.255")];
+
+	if (addr.len == 0) {
+		return "<null destination descriptor>";
+	}
+	if (addr.len == 1) {
+		return "0";
+	}
+	if ((addr.len >= 2) && (addr.len <= 5)) {
+		return inet_ntopdd(addr.iabuf, addr.len, pbuf, sizeof(pbuf));
+	}
+
+	log_fatal("pdestdesc():%s:%d: Invalid destination descriptor length %d.",
+		  MDL, addr.len);
+	/* quell compiler warnings */
+	return NULL;
+}
+
 /* piaddr() turns an iaddr structure into a printable address. */
 /* XXX: should use a const pointer rather than passing the structure */
 const char *

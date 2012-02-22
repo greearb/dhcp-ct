@@ -115,6 +115,26 @@ hexadecimal, separated by colons.   For example:
 or
   option dhcp-client-identifier 43:4c:49:45:54:2d:46:4f:4f;
 .fi
+.PP
+The
+.B destination-descriptor
+describe the IP subnet number and subnet mask
+of a particular destination using a compact encoding. This encoding
+consists of one octet describing the width of the subnet mask,
+followed by all the significant octets of the subnet number.
+The following table contains some examples of how various subnet
+number/mask combinations can be encoded:
+.nf
+.sp 1
+Subnet number   Subnet mask      Destination descriptor
+0               0                0
+10.0.0.0        255.0.0.0        8.10
+10.0.0.0        255.255.255.0    24.10.0.0
+10.17.0.0       255.255.0.0      16.10.17
+10.27.129.0     255.255.255.0    24.10.27.129
+10.229.0.128    255.255.255.128  25.10.229.0.128
+10.198.122.47   255.255.255.255  32.10.198.122.47
+.fi
 .SH SETTING OPTION VALUES USING EXPRESSIONS
 Sometimes it's helpful to be able to set the value of a DHCP option
 based on some value that the client has sent.   To do this, you can
@@ -928,6 +948,29 @@ dhclient-script will create routes:
         172/8 via 172.16.2.254 dev $interface
 .br
         192.168/16 via 192.168.2.254 dev $interface
+.RE
+.PP
+.nf
+.B option \fBclassless-static-routes\fR \fIdestination-descriptor ip-address\fR
+                  [\fB,\fR \fIdestination-descriptor ip-address\fR...]\fB;\fR
+.fi
+.RS 0.25i
+.PP
+This option (see RFC3442) specifies a list of classless static routes
+that the client should install in its routing cache.
+.PP
+This option can contain one or more static routes, each of which
+consists of a destination descriptor and the IP address of the router
+that should be used to reach that destination.
+.PP
+Many clients may not implement the Classless Static Routes option.
+DHCP server administrators should therefore configure their DHCP
+servers to send both a Router option and a Classless Static Routes
+option, and should specify the default router(s) both in the Router
+option and in the Classless Static Routes option.
+.PP
+If the DHCP server returns both a Classless Static Routes option and
+a Router option, the DHCP client ignores the Router option.
 .RE
 .PP
 .nf

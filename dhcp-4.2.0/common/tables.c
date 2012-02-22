@@ -51,6 +51,7 @@ HASH_FUNCTIONS (option_code, const unsigned *, struct option,
    Format codes:
 
    I - IPv4 address
+   R - destination descriptor (RFC3442)
    6 - IPv6 address
    l - 32-bit signed integer
    L - 32-bit unsigned integer
@@ -208,6 +209,7 @@ static struct option dhcp_options[] = {
 	{ "default-url", "t",			&dhcp_universe, 114, 1 },
 	{ "subnet-selection", "I",		&dhcp_universe, 118, 1 },
 	{ "domain-search", "D",		&dhcp_universe, 119, 1 },
+	{ "classless-static-routes", "RIA",	&dhcp_universe, 121, 1 },
 	{ "vivco", "Evendor-class.",		&dhcp_universe, 124, 1 },
 	{ "vivso", "Evendor.",			&dhcp_universe, 125, 1 },
 #if 0

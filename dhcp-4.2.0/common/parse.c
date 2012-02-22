@@ -341,6 +341,39 @@ int parse_ip_addr (cfile, addr)
 }	
 
 /*
+ * destination-descriptor :== NUMBER DOT NUMBER |
+ *                            NUMBER DOT NUMBER DOT NUMBER |
+ *                            NUMBER DOT NUMBER DOT NUMBER DOT NUMBER |
+ *                            NUMBER DOT NUMBER DOT NUMBER DOT NUMBER DOT NUMBER
+ */
+
+int parse_destination_descriptor (cfile, addr)
+	struct parse *cfile;
+	struct iaddr *addr;
+{
+		unsigned int mask_width, dest_dest_len;
+		addr -> len = 0;
+		if (parse_numeric_aggregate (cfile, addr -> iabuf,
+									 &addr -> len, DOT, 10, 8)) {
+			mask_width = (unsigned int)addr->iabuf[0];
+			dest_dest_len = (((mask_width+7)/8)+1);
+			if (mask_width > 32) {
+				parse_warn (cfile,
+				"subnet mask width (%u) greater than 32.", mask_width);
+			}
+			else if (dest_dest_len != addr->len) {
+				parse_warn (cfile,
+				"destination descriptor with subnet mask width %u "
+				"should have %u octets, but has %u octets.",
+				mask_width, dest_dest_len, addr->len);
+			}
+
+			return 1;
+		}
+		return 0;
+}
+
+/*
  * Return true if every character in the string is hexadecimal.
  */
 static int
@@ -707,8 +740,10 @@ unsigned char *parse_numeric_aggregate (cfile, buf,
 		if (count) {
 			token = peek_token (&val, (unsigned *)0, cfile);
 			if (token != separator) {
-				if (!*max)
+				if (!*max) {
+					*max = count;
 					break;
+				}
 				if (token != RBRACE && token != LBRACE)
 					token = next_token (&val,
 							    (unsigned *)0,
@@ -1618,6 +1653,9 @@ int parse_option_code_definition (cfile, option)
 
 	      case IP_ADDRESS:
 		type = 'I';
+		break;
+	      case DESTINATION_DESCRIPTOR:
+		type = 'R';
 		break;
 	      case IP6_ADDRESS:
 		type = '6';
@@ -5232,6 +5270,15 @@ int parse_option_token (rv, cfile, fmt, expr, uniform, lookups)
 		}
 		break;
 
+	      case 'R': /* destination descriptor */
+		if (!parse_destination_descriptor (cfile, &addr)) {
+			return 0;
+		}
+		if (!make_const_data (&t, addr.iabuf, addr.len, 0, 1, MDL)) {
+			return 0;
+		}
+		break;
+
 	      case '6': /* IPv6 address. */
 		if (!parse_ip6_addr(cfile, &addr)) {
 			return 0;
@@ -5489,6 +5536,13 @@ int parse_option_decl (oc, cfile)
 
 			      case 'I': /* IP address. */
 				if (!parse_ip_addr (cfile, &ip_addr))
+					goto exit;
+				len = ip_addr.len;
+				dp = ip_addr.iabuf;
+				goto alloc;
+
+			      case 'R': /* destination descriptor */
+				if (!parse_destination_descriptor (cfile, &ip_addr))
 					goto exit;
 				len = ip_addr.len;
 				dp = ip_addr.iabuf;
