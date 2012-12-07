@@ -59,6 +59,7 @@ void bootp (packet)
 	int ignorep;
 	int peer_has_leases = 0;
 	int norelay = 0;
+	int send_null_pkt = 0;
 
 	if (packet -> raw -> op != BOOTREQUEST)
 		return;
@@ -383,21 +384,11 @@ void bootp (packet)
 	if (raw.giaddr.s_addr) {
 		to.sin_addr = raw.giaddr;
 		to.sin_port = local_port;
-
-		if (fallback_interface) {
-			result = send_packet (fallback_interface,
-					      (struct packet *)0,
-					      &raw, outgoing.packet_length,
-					      from, &to, &hto);
-			goto out;
-		}
+		send_null_pkt = 1;
 	} else if (norelay == 2) {
 		to.sin_addr = raw.ciaddr;
 		to.sin_port = remote_port;
-		if (fallback_interface) {
-			result = send_packet (fallback_interface, (struct packet *)0, &raw, outgoing.packet_length, from, &to, &hto);
-			goto out;
-		}
+		send_null_pkt = 1;
 
 	/* If it comes from a client that already knows its address
 	   and is not requesting a broadcast response, and we can
@@ -415,8 +406,9 @@ void bootp (packet)
 	}
 
 	errno = 0;
-	result = send_packet (packet -> interface,
-			      packet, &raw, outgoing.packet_length,
+	result = send_packet (packet->interface ? packet->interface : fallback_interface,
+			      send_null_pkt ? (struct packet *)0 : packet,
+			      &raw, outgoing.packet_length,
 			      from, &to, &hto);
       out:
 	if (options)

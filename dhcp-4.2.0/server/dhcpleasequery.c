@@ -636,13 +636,8 @@ dhcpleasequery(struct packet *packet, int ms_nulltp) {
 		dhcp_msg_type_name, 
 		inet_ntoa(to.sin_addr), dbg_info, assoc_ip_cnt);
 
-	send_packet(interface,
-		    NULL,
-		    packet->raw, 
-		    packet->packet_length,
-		    siaddr,
-		    &to,
-		    NULL);
+	send_packet(interface, NULL, packet->raw, packet->packet_length,
+		    siaddr, &to, NULL);
 }
 
 #ifdef DHCPv6

@@ -62,6 +62,7 @@ static void usage(void);
 
 struct iaddr server_identifier;
 int server_identifier_matched;
+int bind_to_dev;
 
 #if defined (NSUPDATE)
 
@@ -401,6 +402,8 @@ main(int argc, char **argv) {
 #endif /* TRACING */
 		} else if (argv [i][0] == '-') {
 			usage ();
+		} else if (strcmp(argv [i], "-bindtodev")) {
+			bind_to_dev = 1;
 		} else {
 			struct interface_info *tmp =
 				(struct interface_info *)0;
