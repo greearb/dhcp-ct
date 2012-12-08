@@ -892,7 +892,7 @@ main(int argc, char **argv) {
 		/* Bind this socket to this interface. */
 		if (interfaces) {
 			if (setsockopt(fallback_interface->wfdesc, SOL_SOCKET, SO_BINDTODEVICE,
-				       interfaces->name, strlen(interfaces->name) < 0)) {
+				       interfaces->name, strlen(interfaces->name)) < 0) {
 				log_error("setsockopt: SO_BINDTODEVICE(%i, %s): %m",
 					  fallback_interface->wfdesc, interfaces->name);
 			}
