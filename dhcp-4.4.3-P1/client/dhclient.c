@@ -829,6 +829,30 @@ main(int argc, char **argv) {
 			    ? DISCOVER_REQUESTED
 			    : DISCOVER_RUNNING);
 
+#if defined (SO_BINDTODEVICE)
+	/* Bind hard to the interface if exactly one was specified */
+	if (fallback_interface && (interfaces_requested == 1)) {
+		/* Bind this socket to this interface. */
+		if (interfaces) {
+			if (setsockopt(fallback_interface->wfdesc, SOL_SOCKET, SO_BINDTODEVICE,
+				       interfaces->name, strlen(interfaces->name)) < 0) {
+				log_error("setsockopt: SO_BINDTODEVICE(%i, %s): %m",
+					  fallback_interface->wfdesc, interfaces->name);
+			}
+			else {
+				log_info("Bound fallback interface to device: %s", interfaces->name);
+			}
+		}
+		else {
+			log_error("WARNING:  interfaces is NULL, cannot bind fallback to an interface.");
+		}
+	}
+	else {
+		log_info("Not calling BINDTODEVICE, fallback: %p  interfaces_requested: %i",
+			 fallback_interface, interfaces_requested);
+	}
+#endif
+
 	/* PLEASE PREFER the random device: not all systems use random
 	 * process identifiers so the alternative can be predictable. */
 	seed = 0;

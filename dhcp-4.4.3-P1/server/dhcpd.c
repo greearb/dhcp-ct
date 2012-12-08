@@ -256,6 +256,7 @@ main(int argc, char **argv) {
 	char *s;
 	int cftest = 0;
 	int lftest = 0;
+	int specified_iface = 0;
 	int pid;
 	char pbuf [20];
 #ifndef DEBUG
@@ -555,6 +556,7 @@ main(int argc, char **argv) {
 			}
 			interface_reference (&interfaces, tmp, MDL);
 			tmp -> flags = INTERFACE_REQUESTED;
+			specified_iface++;
 		}
 	}
 
@@ -908,6 +910,26 @@ main(int argc, char **argv) {
 	} else
 #endif /* DHCPv6 && DHCP4o6 */
 	discover_interfaces(DISCOVER_SERVER);
+
+#if defined (SO_BINDTODEVICE)
+	/* Bind hard to the interface if exactly one was specified */
+	if (fallback_interface && (specified_iface == 1)) {
+		/* Bind this socket to this interface. */
+		if (interfaces) {
+			if (setsockopt(fallback_interface->wfdesc, SOL_SOCKET, SO_BINDTODEVICE,
+				       interfaces->name, strlen(interfaces->name)) < 0) {
+				log_error("setsockopt: SO_BINDTODEVICE(%i, %s): %m",
+					  fallback_interface->wfdesc, interfaces->name);
+			}
+			else {
+				log_info("Bound fallback interface to device: %s", interfaces->name);
+			}
+		}
+		else {
+			log_error("WARNING:  interfaces is NULL, cannot bind fallback to an interface.");
+		}
+	}
+#endif
 
 #ifdef DHCPv6
 	/*
