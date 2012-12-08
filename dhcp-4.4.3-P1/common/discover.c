@@ -589,7 +589,7 @@ discover_interfaces(int state) {
 	int updone = 0;
 	int downdone = 0;
 #endif
-
+        int skip_new_ones = 0;
 	static int setup_fallback = 0;
 
 	if (!begin_iface_scan(&ifaces)) {
@@ -600,8 +600,12 @@ discover_interfaces(int state) {
 	   a DHCP server, the interfaces were requested. */
 	if (interfaces && (state == DISCOVER_SERVER ||
 			   state == DISCOVER_RELAY ||
-			   state == DISCOVER_REQUESTED))
+			   state == DISCOVER_REQUESTED)) {
 		ir = 0;
+		/* User has specified which interface(s) to use,
+		 * so don't add any others. */
+                skip_new_ones = 1;
+        }
 	else if (state == DISCOVER_UNCONFIGURED)
 		ir = INTERFACE_REQUESTED | INTERFACE_AUTOMATIC;
 	else {
@@ -641,6 +645,8 @@ discover_interfaces(int state) {
 		/* If there isn't already an interface by this name,
 		   allocate one. */
 		if (tmp == NULL) {
+			if (skip_new_ones)
+				continue;
 			status = interface_allocate(&tmp, MDL);
 			if (status != ISC_R_SUCCESS) {
 				log_fatal("Error allocating interface %s: %s",
