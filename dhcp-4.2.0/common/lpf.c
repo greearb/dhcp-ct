@@ -342,6 +342,23 @@ ssize_t send_packet (interface, packet, raw, len, from, to, hto)
 	fudge = hbufp % 4;	/* IP header must be word-aligned. */
 	memcpy (buf + fudge, (unsigned char *)hh, hbufp);
 	ibufp = hbufp + fudge;
+
+        /* If caller passed in zero 'from', then use our own
+         * IP Address for the source address.
+         */
+        if (from.s_addr == 0) {
+           if (interface->address_count == 0) {
+              log_error("ERROR:  No addresses for interface: %s",
+                       interface->name);
+           }
+           else {
+              from = interface->addresses[0];
+              if (from.s_addr == 0) {
+                 log_error("ERROR:  Interface: %s has zero IP.",
+                           interface->name);
+              }
+           }
+        }
 	assemble_udp_ip_header (interface, buf, &ibufp, from.s_addr,
 				to -> sin_addr.s_addr, to -> sin_port,
 				(unsigned char *)raw, len);
