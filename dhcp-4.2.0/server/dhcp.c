@@ -1306,7 +1306,8 @@ void dhcpinform (packet, ms_nulltp)
 					    packet->interface->name);
 
 	errno = 0;
-	send_packet ((packet -> interface ? packet -> interface : fallback_interface),
+	send_packet ((fallback_interface
+		      ? fallback_interface : packet -> interface),
 		     &outgoing, &raw, outgoing.packet_length,
 		     from, &to, (struct hardware *)0);
 	if (subnet)
@@ -1450,13 +1451,20 @@ void nak_lease (packet, cip)
 			to.sin_port = local_port;
 		else
 			to.sin_port = remote_port; /* for testing. */
+
+		if (fallback_interface) {
+			result = send_packet(fallback_interface, packet, &raw,
+					     outgoing.packet_length, from, &to,
+					     NULL);
+			return;
+		}
 	} else {
 		to.sin_addr = limited_broadcast;
 		to.sin_port = remote_port;
 	}
 
 	errno = 0;
-	result = send_packet(packet->interface ? packet->interface : fallback_interface, packet, &raw,
+	result = send_packet(packet->interface, packet, &raw,
 			     outgoing.packet_length, from, &to, NULL);
 }
 
@@ -2983,7 +2991,6 @@ void dhcp_reply (lease)
 	int nulltp, bootpp, unicastp = 1;
 	struct data_string d1;
 	const char *s;
-	int use_raw_siadr = 0;
 
 	if (!state)
 		log_fatal ("dhcp_reply was supplied lease with no state!");
@@ -3108,7 +3115,18 @@ void dhcp_reply (lease)
 			to.sin_port = local_port;
 		else
 			to.sin_port = remote_port; /* For debugging. */
-		use_raw_siadr = 1;
+
+		if (fallback_interface) {
+			result = send_packet (fallback_interface,
+					      (struct packet *)0,
+					      &raw, packet_length,
+					      raw.siaddr, &to,
+					      (struct hardware *)0);
+
+			free_lease_state (state, MDL);
+			lease -> state = (struct lease_state *)0;
+			return;
+		}
 
 	/* If the client is RENEWING, unicast to the client using the
 	   regular IP stack.  Some clients, particularly those that
@@ -3130,7 +3148,18 @@ void dhcp_reply (lease)
 		   state -> offer == DHCPACK) {
 		to.sin_addr = raw.ciaddr;
 		to.sin_port = remote_port;
-		use_raw_siadr = 1;
+
+		if (fallback_interface) {
+			result = send_packet (fallback_interface,
+					      (struct packet *)0,
+					      &raw, packet_length,
+					      raw.siaddr, &to,
+					      (struct hardware *)0);
+			free_lease_state (state, MDL);
+			lease -> state = (struct lease_state *)0;
+			return;
+		}
+
 	/* If it comes from a client that already knows its address
 	   and is not requesting a broadcast response, and we can
 	   unicast to a client without using the ARP protocol, sent it
@@ -3148,19 +3177,9 @@ void dhcp_reply (lease)
 			unicastp = 0;
 	}
 
-	if (use_raw_siadr) {
-		result = send_packet (state->ip ? state->ip : fallback_interface,
-				      (struct packet *)0,
-				      &raw, packet_length,
-				      raw.siaddr, &to,
-				      (struct hardware *)0);
-		free_lease_state (state, MDL);
-		lease -> state = (struct lease_state *)0;
-		return;
-	}
 	memcpy (&from, state -> from.iabuf, sizeof from);
 
-	result = send_packet (state -> ip ? state->ip : fallback_interface,
+	result = send_packet (state -> ip,
 			      (struct packet *)0, &raw, packet_length,
 			      from, &to,
 			      unicastp ? &hto : (struct hardware *)0);
