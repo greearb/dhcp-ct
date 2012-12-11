@@ -907,6 +907,57 @@ add_ipv6_addr_to_interface(struct interface_info *iface,
 }
 #endif /* DHCPv6 */
 
+
+#ifdef __linux
+void discover_one_interface(int state) {
+	/* Interface is already partially configured 'interfaces'
+	 */
+	struct ifreq tmp;
+	struct sockaddr_in *a;
+	struct iaddr addr;
+	int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (sock < 0) {
+		log_fatal("Error creating socket to list interfaces; %m");
+		return;
+	}
+
+	if (dhcp_interface_discovery_hook) {
+		(*dhcp_interface_discovery_hook)(interfaces);
+	}
+
+	memset(&tmp, 0, sizeof(tmp));
+	strcpy(tmp.ifr_name, interfaces->name);
+	if (ioctl(sock, SIOCGIFADDR, &tmp) < 0) {
+		if (errno != EADDRNOTAVAIL) {
+			log_fatal("Error getting interface address "
+				  "for '%s'; %m", interfaces->name);
+			close(sock);
+			return;
+		}
+	}
+	a = (struct sockaddr_in*)&tmp.ifr_addr;
+	add_ipv4_addr_to_interface(interfaces, &a->sin_addr);
+
+	/* invoke the setup hook */
+	addr.len = 4;
+	memcpy(addr.iabuf, &a->sin_addr.s_addr, addr.len);
+	if (dhcp_interface_setup_hook) {
+		(*dhcp_interface_setup_hook)(interfaces, &addr);
+	}
+
+	if (interfaces->ifp == NULL) {
+		struct ifreq *tif;
+
+		tif = (struct ifreq *)dmalloc(sizeof(struct ifreq), MDL);
+		if (tif == NULL)
+			log_fatal("no space for ifp mockup.");
+		strcpy(tif->ifr_name, interfaces->name);
+		interfaces->ifp = tif;
+	}
+	close(sock);
+}
+#endif
+
 /* Use the SIOCGIFCONF ioctl to get a list of all the attached interfaces.
    For each interface that's of type INET and not the loopback interface,
    register that interface with the network I/O software, figure out what

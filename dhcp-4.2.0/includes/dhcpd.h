@@ -2550,6 +2550,7 @@ extern struct interface_info **interface_vector;
 extern int interface_count;
 extern int interface_max;
 isc_result_t interface_initialize(omapi_object_t *, const char *, int);
+void discover_one_interface(int);
 void discover_interfaces(int);
 int setup_fallback (struct interface_info **, const char *, int);
 int if_readsocket PROTO ((omapi_object_t *));

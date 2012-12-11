@@ -656,8 +656,18 @@ main(int argc, char **argv) {
 		return 0;
 	}
 
-	/* Discover all the network interfaces. */
-	discover_interfaces(DISCOVER_UNCONFIGURED);
+#ifdef __linux
+        if ((interfaces_requested == 1) && (local_family == AF_INET)) {
+		/** There can be thousands of interfaces...just pay attention
+		 * to the one we care about.  IPv4 only at this time. */
+		discover_one_interface(DISCOVER_UNCONFIGURED);
+	}
+	else
+#endif
+	{
+		/* Discover all the network interfaces. */
+		discover_interfaces(DISCOVER_UNCONFIGURED);
+	}
 
 	/* Parse the dhclient.conf file. */
 	read_client_conf();
