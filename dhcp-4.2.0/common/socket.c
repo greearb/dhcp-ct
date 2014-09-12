@@ -215,6 +215,15 @@ if_register_socket(struct interface_info *info, int family,
 	}
 #endif
 
+#if defined(SO_BINDTODEVICE)
+	/* Bind this socket to this interface. */
+	if (/*(local_family != AF_INET6) && */(info->ifp != NULL) &&
+	    setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE,
+			(char *)(info -> ifp), sizeof(*(info -> ifp))) < 0) {
+		log_fatal("setsockopt: SO_BINDTODEVICE: %m");
+	}
+#endif
+
 	/* Bind the socket to this interface's IP address. */
 	if (bind(sock, (struct sockaddr *)&name, name_len) < 0) {
 		log_error("Can't bind to dhcp address: %m");
@@ -224,15 +233,6 @@ if_register_socket(struct interface_info *info, int family,
 		log_error("are not running HP JetAdmin software, which");
 		log_fatal("includes a bootp server.");
 	}
-
-#if defined(SO_BINDTODEVICE)
-	/* Bind this socket to this interface. */
-	if ((local_family != AF_INET6) && (info->ifp != NULL) &&
-	    setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE,
-			(char *)(info -> ifp), sizeof(*(info -> ifp))) < 0) {
-		log_fatal("setsockopt: SO_BINDTODEVICE: %m");
-	}
-#endif
 
 	/* IP_BROADCAST_IF instructs the kernel which interface to send
 	 * IP packets whose destination address is 255.255.255.255.  These
@@ -418,7 +418,8 @@ if_register6(struct interface_info *info, int do_multicast) {
 			 */
 			log_fatal("Impossible condition at %s:%d", MDL);
 		} else {
-			log_info("Bound to *:%d", ntohs(local_port));
+			log_info("Bound to *:%d, req-multi: %d",
+                                 ntohs(local_port), req_multi);
 		}
 	}
 		
@@ -433,15 +434,15 @@ if_register6(struct interface_info *info, int do_multicast) {
 
 	if (!quiet_interface_discovery) {
 		if (info->shared_network != NULL) {
-			log_info("Listening on Socket/%d/%s/%s",
+			log_info("Listening on Socket6/%d/%s/%s",
 				 global_v6_socket, info->name, 
 				 info->shared_network->name);
-			log_info("Sending on   Socket/%d/%s/%s",
+			log_info("Sending on   Socket6/%d/%s/%s",
 				 global_v6_socket, info->name,
 				 info->shared_network->name);
 		} else {
-			log_info("Listening on Socket/%s", info->name);
-			log_info("Sending on   Socket/%s", info->name);
+			log_info("Listening on Socket6/%s", info->name);
+			log_info("Sending on   Socket6/%s", info->name);
 		}
 	}
 }
