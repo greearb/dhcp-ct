@@ -40,7 +40,6 @@ struct collection default_collection = {
 	(struct class *)0,
 };
 
-struct collection *collections = &default_collection;
 struct executable_statement *default_classification_rules;
 
 int have_billing_classes;
@@ -49,6 +48,7 @@ int have_billing_classes;
 
 void classification_setup ()
 {
+        collections = &default_collection;
 	/* eval ... */
 	default_classification_rules = (struct executable_statement *)0;
 	if (!executable_statement_allocate (&default_classification_rules,

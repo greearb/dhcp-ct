@@ -79,8 +79,6 @@ static const char arr [] = "All rights reserved.";
 static const char message [] = "Internet Systems Consortium DHCP Client";
 static const char url [] = "For info, please visit https://www.isc.org/software/dhcp/";
 
-u_int16_t local_port = 0;
-u_int16_t remote_port = 0;
 int no_daemon = 0;
 struct string_list *client_env = NULL;
 int client_env_count = 0;

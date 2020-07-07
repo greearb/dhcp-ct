@@ -39,6 +39,9 @@
    parsing, so we define the routines that manage them here. */
 
 struct enumeration *enumerations;
+struct class unknown_class;
+struct class known_class;
+struct collection *collections;
 
 void add_enumeration (struct enumeration *enumeration)
 {
