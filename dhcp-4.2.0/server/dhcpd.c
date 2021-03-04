@@ -63,6 +63,9 @@ static void usage(void);
 struct iaddr server_identifier;
 int server_identifier_matched;
 
+int use_vlan_filter = 0; /* If non-zero, only accept pkts with specified vlan */
+int bind_vlan_vid = 0; /* if use-vlan-filter is true, only accept frames on this vid */
+
 #if defined (NSUPDATE)
 
 /* This stuff is always executed to figure the default values for certain
@@ -323,6 +326,11 @@ main(int argc, char **argv) {
 			if (++i == argc)
 				usage ();
 			server = argv [i];
+		} else if (!strcmp (argv [i], "-vid")) { /* linux only at this time */
+                        use_vlan_filter = 1;
+			if (++i == argc)
+				usage ();
+                        bind_vlan_vid = atoi(argv[i]);
 #if defined (PARANOIA)
 		} else if (!strcmp (argv [i], "-user")) {
 			if (++i == argc)
@@ -1229,7 +1237,7 @@ usage(void) {
 		  "             [-tf trace-output-file]\n"
 		  "             [-play trace-input-file]\n"
 #endif /* TRACING */
-		  "             [-pf pid-file] [-s server] [if0 [...ifN]]");
+		  "             [-pf pid-file] [-s server] [-vid <vlan-id>] [if0 [...ifN]]");
 }
 
 void lease_pinged (from, packet, length)

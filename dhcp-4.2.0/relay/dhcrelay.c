@@ -48,6 +48,9 @@ int lexchar;
 char *token_line;
 char *tlname;
 
+int use_vlan_filter = 0; /* If non-zero, only accept pkts with specified vlan */
+int bind_vlan_vid = 0; /* if use-vlan-filter is true, only accept frames on this vid */
+
 const char *path_dhcrelay_pid = _PATH_DHCRELAY_PID;
 
 int bogus_agent_drops = 0;	/* Packets dropped because agent option

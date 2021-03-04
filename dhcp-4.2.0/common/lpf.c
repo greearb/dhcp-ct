@@ -56,6 +56,9 @@ struct tpacket_auxdata
 };
 #endif
 
+extern int use_vlan_filter;
+extern int bind_vlan_vid;
+
 /* Reinitializes the specified interface after an address change.   This
    is not required for packet-filter APIs. */
 
@@ -372,6 +375,7 @@ ssize_t send_packet (interface, packet, raw, len, from, to, hto)
 #endif /* USE_LPF_SEND */
 
 #ifdef USE_LPF_RECEIVE
+/* this is called in Linux, entry point for receiving frames. */
 ssize_t receive_packet (interface, buf, len, from, hfrom)
 	struct interface_info *interface;
 	unsigned char *buf;
@@ -407,6 +411,19 @@ ssize_t receive_packet (interface, buf, len, from, hfrom)
 		    cmsg->cmsg_type == PACKET_AUXDATA) {
 			struct tpacket_auxdata *aux = (void *)CMSG_DATA(cmsg);
 			nocsum = aux->tp_status & TP_STATUS_CSUMNOTREADY;
+
+                        /* If this is a vlan frame, and we are not supposed to listen to VLANs,
+                         * then ignore the frame.
+                         * Interesting note:
+                         *  On VLAN interfaces, tci is 0x0 (I guess because it is stripped.)
+                         *  On eth ports, we do see the tci as expected.
+                         *  So, we only do this check if bind_vlan_vid == 0 (which means we are on non-vlan interface)
+                         */
+                        if (use_vlan_filter && (bind_vlan_vid == 0) && (bind_vlan_vid != (aux->tp_vlan_tci & 0xFFF))) {
+                           /* log_error("receive pkt, vlan-filter enabled, vid: %d != tci: 0x%x, ignoring frame.",
+                                     bind_vlan_vid, aux->tp_vlan_tci); */
+                           return 0;
+                        }
 		}
 	}
 
