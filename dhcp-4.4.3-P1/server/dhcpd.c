@@ -63,6 +63,9 @@ struct class known_class;
 struct iaddr server_identifier;
 int server_identifier_matched;
 
+int use_vlan_filter = 0; /* If non-zero, only accept pkts with specified vlan */
+int bind_vlan_vid = 0; /* if use-vlan-filter is true, only accept frames on this vid */
+
 #if defined (NSUPDATE)
 
 /* This stuff is always executed to figure the default values for certain
@@ -183,7 +186,7 @@ static void omapi_listener_start (void *foo)
 
 #define DHCPD_USAGEC \
 "             [-pf pid-file] [--no-pid] [-s server]\n" \
-"             [if0 [...ifN]]"
+"             [-vid <vlan-id>] [if0 [...ifN]]"
 
 #define DHCPD_USAGEH "{--version|--help|-h}"
 
@@ -447,6 +450,11 @@ main(int argc, char **argv) {
 			if (++i == argc)
 				usage(use_noarg, argv[i-1]);
 			server = argv [i];
+		} else if (!strcmp (argv [i], "-vid")) { /* linux only at this time */
+                        use_vlan_filter = 1;
+			if (++i == argc)
+				usage ();
+                        bind_vlan_vid = atoi(argv[i]);
 #if defined (PARANOIA)
 		} else if (!strcmp (argv [i], "-user")) {
 			if (++i == argc)

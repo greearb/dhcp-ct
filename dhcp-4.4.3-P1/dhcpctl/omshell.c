@@ -40,6 +40,9 @@
 #include "dhcpd.h"
 #include <isc/file.h>
 
+int use_vlan_filter = 0; /* If non-zero, only accept pkts with specified vlan */
+int bind_vlan_vid = 0; /* if use-vlan-filter is true, only accept frames on this vid */
+
 /* Fixups */
 isc_result_t find_class (struct class **c, const char *n, const char *f, int l)
 {

@@ -60,6 +60,9 @@ int dhcp_max_agent_option_packet_length = 0;
 
 int interfaces_requested = 0;
 
+int use_vlan_filter = 0; /* If non-zero, only accept pkts with specified vlan */
+int bind_vlan_vid = 0; /* if use-vlan-filter is true, only accept frames on this vid */
+
 struct iaddr iaddr_broadcast = { 4, { 255, 255, 255, 255 } };
 struct iaddr iaddr_any = { 4, { 0, 0, 0, 0 } };
 struct in_addr inaddr_any;
@@ -189,7 +192,7 @@ static const char use_v6command[] = "Command not used for DHCPv4: %s";
 "                [-s server-addr] [-cf config-file]\n" \
 "                [-df duid-file] [-lf lease-file]\n" \
 "                [-pf pid-file] [--no-pid] [-e VAR=val]\n" \
-"                [-sf script-file] [interface]*"
+"                [-sf script-file] [-vid <vlan-id>] [interface]*"
 
 #define DHCLIENT_USAGEH "{--version|--help|-h}"
 
@@ -440,6 +443,11 @@ main(int argc, char **argv) {
 		} else if (!strcmp(argv[i], "-n")) {
 			/* do not start up any interfaces */
 			interfaces_requested = -1;
+                } else if (!strcmp (argv [i], "-vid")) { /* linux only at this time */
+                        use_vlan_filter = 1;
+			if (++i == argc)
+				usage ();
+                        bind_vlan_vid = atoi(argv[i]);
 		} else if (!strcmp(argv[i], "-w")) {
 			/* do not exit if there are no broadcast interfaces. */
 			persist = 1;
