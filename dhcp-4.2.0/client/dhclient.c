@@ -65,6 +65,12 @@ int interfaces_requested = 0;
 int use_vlan_filter = 0; /* If non-zero, only accept pkts with specified vlan */
 int bind_vlan_vid = 0; /* if use-vlan-filter is true, only accept frames on this vid */
 
+#define DROP_COUNT_MAX 100 /* MAX Number of MACs to store*/
+int ignore_dhcp_request = 0;
+u_int8_t drop_probability_mac[DROP_COUNT_MAX][6]; /*To store MAC Address*/
+int drop_probability[DROP_COUNT_MAX]; /*To store rejection Probability percentage for MAC*/
+int count_drop_prob = 0;
+
 struct iaddr iaddr_broadcast = { 4, { 255, 255, 255, 255 } };
 struct iaddr iaddr_any = { 4, { 0, 0, 0, 0 } };
 struct in_addr inaddr_any;
@@ -254,6 +260,20 @@ main(int argc, char **argv) {
 			if (++i == argc)
 				usage ();
                         bind_vlan_vid = atoi(argv[i]);
+		} else if (!strcmp(argv[i], "-dpm")) {
+			ignore_dhcp_request = 1;
+			if (++i == argc) {
+				usage();
+				exit(1);
+			}
+			if (count_drop_prob < DROP_COUNT_MAX) {
+				to_mac_string(argv[i], drop_probability_mac[count_drop_prob],
+					      &(drop_probability[count_drop_prob]));
+				count_drop_prob++;
+			} else {
+				log_fatal("No memory to store more than %d MAC", DROP_COUNT_MAX);
+				exit(1);
+			}
 		} else if (!strcmp(argv[i], "-w")) {
 			/* do not exit if there are no broadcast interfaces. */
 			persist = 1;
@@ -1879,6 +1899,19 @@ void dhcpoffer (packet)
 		log_debug ("%s in wrong transaction.", name);
 #endif
 		return;
+	}
+
+	if (ignore_dhcp_request != 0) {
+		for (int i = 0; i <= count_drop_prob; i++) {
+			/*comparing only First 6 bytes from (hw_address.hbuf+1) that holds MAC address*/
+			if (!(memcmp (client->interface->hw_address.hbuf + 1, drop_probability_mac[i], 6))) {
+				if ((drop_probability[i] != 0 && drop_probability[i] > random () % 1000000)) {
+					return;
+				} else {
+					break;
+				}
+			}
+		}
 	}
 
 	sprintf (obuf, "%s from %s", name, piaddr (packet -> client_addr));
