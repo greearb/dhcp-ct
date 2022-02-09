@@ -2233,7 +2233,9 @@ void dhcpoffer (packet)
 	}
 
 	if (ignore_dhcp_request != 0) {
-		for (int i = 0; i <= count_drop_prob; i++) {
+		int i;
+
+		for (i = 0; i <= count_drop_prob; i++) {
 			/*comparing only First 6 bytes from (hw_address.hbuf+1) that holds MAC address*/
 			if (!(memcmp (client->interface->hw_address.hbuf + 1, drop_probability_mac[i], 6))) {
 				if ((drop_probability[i] != 0 && drop_probability[i] > random () % 1000000)) {
