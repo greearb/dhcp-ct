@@ -662,3 +662,51 @@ pin6_addr(const struct in6_addr *src){
 	return (piaddr(addr));
 }
 #endif
+
+const char *
+to_mac_string(char *mac_ptr, u_int8_t *rslt_mac, int *drop_prob)
+{
+	char tmp[12];
+	int j = 0;
+	int input_str_len = strlen(mac_ptr);
+	for (int i = 0; i < input_str_len; i++) {
+		if (((mac_ptr[i] >= '0') && (mac_ptr[i] <= '9')) ||
+		    ((mac_ptr[i] >= 'a') && (mac_ptr[i] <= 'f')) ||
+		    ((mac_ptr[i] >= 'A') && (mac_ptr[i] <= 'F'))) {
+			tmp[j] = mac_ptr[i];
+			j++;
+		} else if ((mac_ptr[i] == ':') || (mac_ptr[i] == '.')) {
+			/* considering ":" and "." as a valid divider*/
+		} else if (mac_ptr[i] == ' ') {
+			if (j != 12) {
+				log_error("ERROR: Not enough HEX values in the input string.\n");
+				return NULL;
+			}
+			char tmp_prob_bt[input_str_len-i];
+			i++;
+			int tmp = 0;
+			for (int k = i; k < input_str_len; k++) {
+				if (mac_ptr[k] == ' ')
+					continue;
+				tmp_prob_bt[tmp++] = mac_ptr[k];
+			}
+			tmp_prob_bt[tmp] = '\0';
+			*drop_prob = atof(tmp_prob_bt) * 10000;
+			break;
+		} else {
+			log_fatal("ERROR");
+		}
+	}
+	if (j != 12) {
+		log_error("ERROR: Not enough HEX values in the input string.\n");
+		return NULL;
+	}
+	char tmp_bt[3];
+	for (int i = 0; i < 6; i++) {
+		tmp_bt[0] = tmp[i*2];
+		tmp_bt[1] = tmp[i*2+1];
+		tmp_bt[2] = 0;
+		rslt_mac[i] = (((char)(strtol(tmp_bt, NULL, 16)) & 0xFF)); //base 16 (HEX)
+	}
+	return 0;
+}
