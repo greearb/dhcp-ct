@@ -67,6 +67,12 @@ int min_ack_delay_usecs = DEFAULT_MIN_ACK_DELAY_USECS;
 static char dhcp_message [256];
 static int site_code_min;
 
+#define DROP_COUNT_MAX 100 /* MAX Number of MACs to store*/
+extern int ignore_dhcp_request;
+extern u_int8_t drop_probability_mac[DROP_COUNT_MAX][6]; /*To store MAC Address*/
+extern int drop_probability[DROP_COUNT_MAX]; /*To store rejection Probability percentage for MAC*/
+extern int count_drop_prob;
+
 static int find_min_site_code(struct universe *);
 static isc_result_t lowest_site_code(const void *, unsigned, void *);
 
@@ -2202,6 +2208,22 @@ void ack_lease (packet, lease, offer, when, msg, ms_nulltp, hp)
 	unsigned i, j;
 	int s1;
 	int ignorep;
+
+	/*if we passed mac address and probability as input to dhcpd with -dpm option,
+	 * then following code will reject the dhcp request depending on probability.
+	*/
+	if (ignore_dhcp_request != 0) {
+		for (i = 0; i <= count_drop_prob; i++) {
+			/*comparing only First 6 bytes from (hw_address.hbuf+1) that holds MAC address*/
+			if (!(memcmp (lease->hardware_addr.hbuf + 1, drop_probability_mac[i], 6))) {
+				if ((drop_probability[i] != 0 && drop_probability[i] > random () % 1000000)) {
+					return;
+				} else {
+					break;
+				}
+			}
+		}
+	}
 
 	/* If we're already acking this lease, don't do it again. */
 	if (lease -> state)

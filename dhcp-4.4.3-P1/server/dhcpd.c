@@ -60,6 +60,12 @@ gid_t set_gid = 0;
 struct class unknown_class;
 struct class known_class;
 
+#define DROP_COUNT_MAX 100 /* MAX Number of MACs to store*/
+int ignore_dhcp_request = 0;
+u_int8_t drop_probability_mac[DROP_COUNT_MAX][6]; /*To store MAC Address*/
+int drop_probability[DROP_COUNT_MAX]; /*To store rejection Probability percentage for MAC*/
+int count_drop_prob = 0;
+
 struct iaddr server_identifier;
 int server_identifier_matched;
 
@@ -186,7 +192,7 @@ static void omapi_listener_start (void *foo)
 
 #define DHCPD_USAGEC \
 "             [-pf pid-file] [--no-pid] [-s server]\n" \
-"             [-vid <vlan-id>] [if0 [...ifN]]"
+"             [-vid <vlan-id>] [-dpm \"mac-address reject-probability-percentage\"] [if0 [...ifN]]"
 
 #define DHCPD_USAGEH "{--version|--help|-h}"
 
@@ -446,6 +452,20 @@ main(int argc, char **argv) {
 			/* daemon = 0; */
 #endif
 			log_perror = -1;
+		} else if (!strcmp(argv[i], "-dpm")) {
+			ignore_dhcp_request = 1;
+			if (++i == argc) {
+				usage();
+				exit(1);
+			}
+			if (count_drop_prob < DROP_COUNT_MAX) {
+				to_mac_string(argv[i], drop_probability_mac[count_drop_prob],
+					      &(drop_probability[count_drop_prob]));
+				count_drop_prob++;
+			} else {
+				log_fatal("No memory to store more than %d MAC", DROP_COUNT_MAX);
+				exit(1);
+			}
 		} else if (!strcmp (argv [i], "-s")) {
 			if (++i == argc)
 				usage(use_noarg, argv[i-1]);
