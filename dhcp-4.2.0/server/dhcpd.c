@@ -60,6 +60,12 @@ static const char url [] =
 
 static void usage(void);
 
+#define DROP_COUNT_MAX 100 /* MAX Number of MACs to store*/
+int ignore_dhcp_request = 0;
+u_int8_t drop_probability_mac[DROP_COUNT_MAX][6]; /*To store MAC Address*/
+int drop_probability[DROP_COUNT_MAX]; /*To store rejection Probability percentage for MAC*/
+int count_drop_prob = 0;
+
 struct iaddr server_identifier;
 int server_identifier_matched;
 
@@ -305,7 +311,7 @@ main(int argc, char **argv) {
 
 	/* Initially, log errors to stderr as well as to syslogd. */
 	openlog ("dhcpd", LOG_NDELAY, DHCPD_LOG_FACILITY);
-
+usage
 	for (i = 1; i < argc; i++) {
 		if (!strcmp (argv [i], "-p")) {
 			if (++i == argc)
@@ -322,6 +328,20 @@ main(int argc, char **argv) {
 			daemon = 0;
 #endif
 			log_perror = -1;
+		} else if (!strcmp(argv[i], "-dpm")) {
+			ignore_dhcp_request = 1;
+			if (++i == argc) {
+				usage();
+				exit(1);
+			}
+			if (count_drop_prob < DROP_COUNT_MAX) {
+				to_mac_string(argv[i], drop_probability_mac[count_drop_prob],
+					      &(drop_probability[count_drop_prob]));
+				count_drop_prob++;
+			} else {
+				log_fatal("No memory to store more than %d MAC", DROP_COUNT_MAX);
+				exit(1);
+			}
 		} else if (!strcmp (argv [i], "-s")) {
 			if (++i == argc)
 				usage ();
@@ -1237,7 +1257,8 @@ usage(void) {
 		  "             [-tf trace-output-file]\n"
 		  "             [-play trace-input-file]\n"
 #endif /* TRACING */
-		  "             [-pf pid-file] [-s server] [-vid <vlan-id>] [if0 [...ifN]]");
+		  "             [-pf pid-file] [-s server] [-vid <vlan-id>] [if0 [...ifN]]\n"
+		  "		[-dpm \"mac-address reject-probability-percentage\"]");
 }
 
 void lease_pinged (from, packet, length)
