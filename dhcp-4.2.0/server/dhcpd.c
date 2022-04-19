@@ -311,7 +311,7 @@ main(int argc, char **argv) {
 
 	/* Initially, log errors to stderr as well as to syslogd. */
 	openlog ("dhcpd", LOG_NDELAY, DHCPD_LOG_FACILITY);
-usage
+
 	for (i = 1; i < argc; i++) {
 		if (!strcmp (argv [i], "-p")) {
 			if (++i == argc)
