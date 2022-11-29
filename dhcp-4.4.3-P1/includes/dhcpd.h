@@ -2972,6 +2972,7 @@ u_int16_t validate_port_pair(char *);
 #if defined(DHCPv6)
 const char *pin6_addr (const struct in6_addr*);
 #endif
+const char* to_mac_string(char *mac_ptr, u_int8_t *rslt_mac, int *drop_prob);
 
 /* dhclient.c */
 extern int nowait;

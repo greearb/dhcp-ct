@@ -452,12 +452,12 @@ main(int argc, char **argv) {
                 } else if (!strcmp (argv [i], "-vid")) { /* linux only at this time */
                         use_vlan_filter = 1;
 			if (++i == argc)
-				usage ();
+				usage (use_noarg, argv[i-1]);
                         bind_vlan_vid = atoi(argv[i]);
 		} else if (!strcmp(argv[i], "-dpm")) {
 			ignore_dhcp_request = 1;
 			if (++i == argc) {
-				usage();
+				usage(use_noarg, argv[i-1]);
 				exit(1);
 			}
 			if (count_drop_prob < DROP_COUNT_MAX) {
