@@ -72,6 +72,8 @@ extern int ignore_dhcp_request;
 extern u_int8_t drop_probability_mac[DROP_COUNT_MAX][6]; /*To store MAC Address*/
 extern int drop_probability[DROP_COUNT_MAX]; /*To store rejection Probability percentage for MAC*/
 extern int count_drop_prob;
+extern char* lf_msg_pipe;
+extern char* first_dev_name;
 
 static int find_min_site_code(struct universe *);
 static isc_result_t lowest_site_code(const void *, unsigned, void *);
@@ -4075,6 +4077,41 @@ void dhcp_reply (lease)
 		  (state -> giaddr.s_addr
 		   ? inet_ntoa (state -> giaddr)
 		   : state -> ip -> name));
+
+        if (state->offer == DHCPACK) {
+           if (lf_msg_pipe) {
+              int fd = open(lf_msg_pipe, O_WRONLY);
+              if (fd >= 0) {
+                 char lf_msg_buf[128];
+                 int sz;
+
+                 lf_msg_buf[sizeof(lf_msg_buf) - 1] = 0;
+
+                 sz = snprintf(lf_msg_buf, sizeof(lf_msg_buf) - 1, "admin dhcpd %s \'%s on %s to %s %s%s%svia %s\'",
+                               first_dev_name,
+                               (state -> offer
+                                ? (state -> offer == DHCPACK ? "DHCPACK" : "DHCPOFFER")
+                                : "BOOTREPLY"),
+                               piaddr (lease -> ip_addr),
+                               (lease -> hardware_addr.hlen
+                                ? print_hw_addr (lease -> hardware_addr.hbuf [0],
+                                                 lease -> hardware_addr.hlen - 1,
+                                                 &lease -> hardware_addr.hbuf [1])
+                                : print_hex_1(lease->uid_len, lease->uid, 60)),
+                               s ? "(" : "", s ? s : "", s ? ") " : "",
+                               (state -> giaddr.s_addr
+                                ? inet_ntoa (state -> giaddr)
+                                : state -> ip -> name));
+                 write(fd, lf_msg_buf, sz);
+                 /*log_info("wrote to msg pipe, rv: %d  sz: %d  buf: %s",
+                            rv, sz, lf_msg_buf);*/
+              }
+              /*else {
+                 log_info("ERROR:  Failed to open lf_msg_pipe: %s %s",
+                          lf_msg_pipe, strerror(errno));
+              }*/
+           }
+        }
 
 #ifdef DEBUG_PACKET
 	dump_raw ((unsigned char *)&raw, packet_length);

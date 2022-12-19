@@ -71,6 +71,8 @@ int server_identifier_matched;
 
 int use_vlan_filter = 0; /* If non-zero, only accept pkts with specified vlan */
 int bind_vlan_vid = 0; /* if use-vlan-filter is true, only accept frames on this vid */
+char* lf_msg_pipe = NULL;
+char* first_dev_name = "UNKNOWN";
 
 #if defined (NSUPDATE)
 
@@ -192,6 +194,7 @@ static void omapi_listener_start (void *foo)
 
 #define DHCPD_USAGEC \
 "             [-pf pid-file] [--no-pid] [-s server]\n" \
+"             [-lf_msg_pipe <file-name>\n" \
 "             [-vid <vlan-id>] [-dpm \"mac-address reject-probability-percentage\"] [if0 [...ifN]]"
 
 #define DHCPD_USAGEH "{--version|--help|-h}"
@@ -475,6 +478,10 @@ main(int argc, char **argv) {
 			if (++i == argc)
 				usage (use_noarg, argv[i-1]);
                         bind_vlan_vid = atoi(argv[i]);
+		} else if (!strcmp (argv [i], "-lf_msg_pipe")) { /* linux only at this time */
+			if (++i == argc)
+				usage (use_noarg, argv[i-1]);
+                        lf_msg_pipe = strdup(argv[i]);
 #if defined (PARANOIA)
 		} else if (!strcmp (argv [i], "-user")) {
 			if (++i == argc)
@@ -576,6 +583,7 @@ main(int argc, char **argv) {
 				log_fatal ("Insufficient memory to %s %s: %s",
 					   "record interface", argv [i],
 					   isc_result_totext (result));
+                        first_dev_name = strdup(argv[i]);
 			strcpy (tmp -> name, argv [i]);
 			if (interfaces) {
 				interface_reference (&tmp -> next,
