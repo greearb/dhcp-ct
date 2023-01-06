@@ -4087,7 +4087,7 @@ void dhcp_reply (lease)
 
                  lf_msg_buf[sizeof(lf_msg_buf) - 1] = 0;
 
-                 sz = snprintf(lf_msg_buf, sizeof(lf_msg_buf) - 1, "admin dhcpd %s \'%s on %s to %s %s%s%svia %s\'",
+                 sz = snprintf(lf_msg_buf, sizeof(lf_msg_buf) - 1, "admin dhcpd %s \'%s on %s to %s %s%s%svia %s\'\n",
                                first_dev_name,
                                (state -> offer
                                 ? (state -> offer == DHCPACK ? "DHCPACK" : "DHCPOFFER")
@@ -4105,6 +4105,7 @@ void dhcp_reply (lease)
                  write(fd, lf_msg_buf, sz);
                  /*log_info("wrote to msg pipe, rv: %d  sz: %d  buf: %s",
                             rv, sz, lf_msg_buf);*/
+                 close(fd);
               }
               /*else {
                  log_info("ERROR:  Failed to open lf_msg_pipe: %s %s",
