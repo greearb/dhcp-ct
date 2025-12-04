@@ -266,7 +266,15 @@ if_register_socket(struct interface_info *info, int family,
 	/* Bind the socket to this interface's IP address. */
 	if (bind(sock, (struct sockaddr *)&name, name_len) < 0) {
 		log_error("Can't bind to dhcp address: %m");
-		log_error("Please make sure there is no other dhcp server");
+                if (family == AF_INET6) {
+                   log_error("IPv6, dev: %s local_port: %d  bind-local-address: %d link-local: %d scope: %d",
+                             info->name, addr6->sin6_port, bind_local_address6, linklocal6, addr6->sin6_scope_id);
+                }
+                else {
+                   log_error("IPv4, dev: %s local_port: %d  sin-addr: 0x%x",
+                             info->name, addr->sin_port, addr->sin_addr.s_addr);
+                }
+		log_error("Please make sure there is no other conflicting dhcp process");
 		log_error("running and that there's no entry for dhcp or");
 		log_error("bootp in /etc/inetd.conf.   Also make sure you");
 		log_error("are not running HP JetAdmin software, which");
